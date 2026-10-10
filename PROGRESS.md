@@ -33,6 +33,8 @@ Current step: 10 of 10 | Last updated: 2026-10-10T22:32:30Z | Tool: Antigravity
 - lib/rate-limit.ts: In-memory rate limiting with hashed client identifier, done
 - lib/safe-fetch.ts: SSRF prevention, IP pinning, DNS resolution, redirect caps, done
 - lib/providers/openai.ts: Structured extraction, quote validation, summary generation, done
+- lib/providers/gemini.ts: Gemini 1.5 Flash structured extraction with JSON schema and quota detection, done
+- lib/providers/extraction-chain.ts: Multi-key Gemini rotation fallback to OpenAI gpt-4o-mini, done
 - lib/providers/whoisxml.ts: WhoisXML adapter with creation-date parsing, done
 - lib/providers/serpapi.ts: SerpAPI Google search adapter with error handling and link sanitization, done
 - lib/checks/message-flags.ts: Check 1 message red flags and negation handling, done
@@ -40,7 +42,7 @@ Current step: 10 of 10 | Last updated: 2026-10-10T22:32:30Z | Tool: Antigravity
 - lib/checks/careers-match.ts: Check 3 official careers match and role verification, done
 - lib/checks/registration.ts: Check 4 Indian corporate registration check, done
 - lib/checks/complaints.ts: Check 5 multi-source complaint pattern detection, done
-- app/api/extract/route.ts: Input validation, safe URL fetch, OpenAI extraction handler, done
+- app/api/extract/route.ts: Input validation, safe URL fetch, Gemini-to-OpenAI provider chain handler, done
 - app/api/verify/route.ts: Check orchestration, NDJSON streaming, partial results, summary fallback, done
 - components/Icons.tsx: Accessible SVG line-only icons (zero emojis), done
 - components/InputForm.tsx: Input form with tabs, length limits, live counters, privacy notice, done
@@ -60,7 +62,8 @@ Current step: 10 of 10 | Last updated: 2026-10-10T22:32:30Z | Tool: Antigravity
 - tests/failure-and-edge-cases.test.ts: Tests for prompt injection defense, audit dates, job-board rejection, timeout, and stream interruption, done
 
 ## Decisions and doc conflicts
-- Key naming: Primary names are OPENAI_API_KEY, SERPAPI_API_KEY, WHOISXML_API_KEY with fallbacks SERPAPI_KEY, WHOISXML_KEY in lib/env.ts.
+- Key naming: Primary names are GEMINI_API_KEYS (comma-separated, primary extraction), OPENAI_API_KEY (last-resort extraction fallback and summarization), SERPAPI_API_KEY, WHOISXML_API_KEY with fallbacks SERPAPI_KEY, WHOISXML_KEY in lib/env.ts.
+- Extraction chain: Sequential rotation over GEMINI_API_KEYS -> OpenAI gpt-4o-mini structured fallback -> honest unavailable 503 response. Zero key leakage.
 - Plain CSS used with design tokens in app/globals.css.
 - No emojis anywhere: SVG line icons paired with text for all indicators.
 - Client bundle scan: Verified that zero API keys or environment secrets appear in the static client bundle.
@@ -72,14 +75,16 @@ Current step: 10 of 10 | Last updated: 2026-10-10T22:32:30Z | Tool: Antigravity
 - npm run test
 
 ## Env
-- OPENAI_API_KEY (placeholder)
+- GEMINI_API_KEYS (placeholder, comma-separated primary extraction keys)
+- GEMINI_MODEL (optional, default: gemini-1.5-flash)
+- OPENAI_API_KEY (placeholder, fallback extraction and summarization)
 - SERPAPI_API_KEY (placeholder)
 - WHOISXML_API_KEY (placeholder)
-- OPENAI_MODEL (placeholder)
+- OPENAI_MODEL (placeholder, default: gpt-4o-mini)
 - OPENCORPORATES_API_KEY (placeholder)
 
 ## Known issues / not tested
-- Live third-party provider access (OpenAI, SerpAPI, WhoisXML live accounts) unverified unless local keys are supplied by user in .env.local. All mock flows, failure cases, and demo fixtures verified.
+- Live third-party provider access (Gemini, OpenAI, SerpAPI, WhoisXML live accounts) unverified unless local keys are supplied by user in .env.local. All mock flows, failure cases, and demo fixtures verified.
 
 ## Next action
 Build complete. Ready for user local key configuration in .env.local and deployment.

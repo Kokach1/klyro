@@ -7,7 +7,7 @@
 - **Code repository URL:** https://github.com/Kokach1/klyro
 - **Final submitted implementation commit SHA:** 92444cf
 - **Working demo URL or local demo steps:** Clone repo, run `npm install`, `npm run build`, and `npm run start`. Visit `http://localhost:3000`. Test live postings or load the 4 pre-recorded demo fixtures directly from the header.
-- **Demo access requirements:** None for demo fixtures. Live scans require valid server environment variables in `.env.local` (`OPENAI_API_KEY`, `SERPAPI_API_KEY`, `WHOISXML_API_KEY`).
+- **Demo access requirements:** None for demo fixtures. Live scans require valid server environment variables in `.env.local` (`GEMINI_API_KEYS` or `OPENAI_API_KEY` for extraction, `SERPAPI_API_KEY`, `WHOISXML_API_KEY`).
 
 ## Participants
 
@@ -19,11 +19,11 @@
 
 - **Prerequisites and versions:** Node.js 18+ (tested on Node v24.11.1), npm 9+
 - **Install command:** `npm install`
-- **Required environment variable names:** `OPENAI_API_KEY`, `SERPAPI_API_KEY`, `WHOISXML_API_KEY`, `OPENAI_MODEL` (see `.env.example`).
+- **Required environment variable names:** `GEMINI_API_KEYS`, `OPENAI_API_KEY`, `SERPAPI_API_KEY`, `WHOISXML_API_KEY`, `OPENAI_MODEL`, `GEMINI_MODEL` (see `.env.example`).
 - **Start command:** `npm run dev` (dev server) or `npm run build && npm run start` (production)
 - **Demo walkthrough:**
   1. Open http://localhost:3000.
-  2. Either paste forwarded job text / job link, or click one of the four demo fixture buttons in the header:
+  2. Either paste forwarded job text / job link, or click one of the four demo fixtures in the header:
      - Official role (Safe)
      - Payment demand forward (Likely Scam)
      - Paid training offer (Caution)
@@ -32,7 +32,7 @@
   4. View the real-time NDJSON progress stream across all 5 checks.
   5. Inspect the rule-based risk index dial (0-100, no percent sign), coverage statistics, check findings, and expandable evidence items with inert quoted text.
 - **Checks performed and results:**
-  - 30 automated Vitest unit, rule, provider, and security failure tests passing (`npm run test`).
+  - 35 automated Vitest unit, rule, provider, extraction chain, and security failure tests passing (`npm run test`).
   - Strict TypeScript compilation with zero errors (`npm run typecheck`).
   - Production build compiled successfully (`npm run build`).
   - Client bundle verified free of secrets or credential strings.
@@ -47,7 +47,8 @@
   - [Zod](https://zod.dev/) (Runtime schema validation)
   - [Vitest](https://vitest.dev/) (Test runner)
   - [tldts](https://github.com/remusao/tldts) (Public-suffix domain parsing)
-  - [OpenAI API](https://platform.openai.com/) (Structured outputs for extraction and summarization)
+  - [Google Gemini API](https://ai.google.dev/) (Primary structured extraction with multi-key quota rotation)
+  - [OpenAI API](https://platform.openai.com/) (Fallback structured extraction with gpt-4o-mini, and summary generation)
   - [SerpAPI](https://serpapi.com/) (Defensive Google Search queries for careers, MCA registration, complaints)
   - [WhoisXML API](https://www.whoisxmlapi.com/) (Domain creation dates and registry verification)
 - **AI usage record:** [AI_USAGE.md](AI_USAGE.md)

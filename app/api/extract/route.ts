@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ExtractRequestSchema, ExtractResponse } from "@/lib/contracts";
 import { safeFetchUrl, SafeFetchError } from "@/lib/safe-fetch";
-import { extractClaimsWithOpenAI } from "@/lib/providers/openai";
+import {
+  extractClaimsWithProviderChain,
+  ExtractionChainError,
+} from "@/lib/providers/extraction-chain";
 import { checkRateLimit } from "@/lib/rate-limit";
-import { getServerEnv } from "@/lib/env";
 
 export async function POST(req: NextRequest) {
   // Rate limit: 5 extract requests per IP per minute
@@ -85,11 +87,6 @@ export async function POST(req: NextRequest) {
       sourceText = fetchResult.text;
       sourceUrl = fetchResult.finalUrl;
     } catch (err: any) {
-      const isBlockedOrUnreadable =
-        err instanceof SafeFetchError ||
-        err.message?.includes("fetch") ||
-        err.message?.includes("unsupported");
-
       return NextResponse.json(
         {
           error: {
@@ -131,23 +128,9 @@ export async function POST(req: NextRequest) {
     sourceText = input.trim();
   }
 
-  const env = getServerEnv();
-  if (!env.OPENAI_API_KEY) {
-    return NextResponse.json(
-      {
-        error: {
-          code: "service_unavailable",
-          message: "OPENAI_API_KEY is not configured on the server.",
-          retryable: false,
-        },
-      },
-      { status: 503 }
-    );
-  }
-
   try {
     const { extracted, warnings: extractionWarnings } =
-      await extractClaimsWithOpenAI(sourceText, 15000);
+      await extractClaimsWithProviderChain(sourceText, 15000);
 
     const responseData: ExtractResponse = {
       source: {
@@ -162,11 +145,24 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(responseData, { status: 200 });
   } catch (err: any) {
+    if (err instanceof ExtractionChainError) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "service_unavailable",
+            message: err.message,
+            retryable: true,
+          },
+        },
+        { status: 503 }
+      );
+    }
+
     return NextResponse.json(
       {
         error: {
           code: "extraction_failed",
-          message: `Extraction failed: ${err.message}`,
+          message: `Extraction failed: ${err.message || "Unknown error"}`,
           retryable: true,
         },
       },

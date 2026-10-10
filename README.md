@@ -24,13 +24,21 @@ Unlike generic sentiment-based AI tools, this system uses an evidence-grounded v
 ```text
 Message Text / Job URL
   -> Safe URL Fetch & SSRF Validation
-  -> Schema-Constrained Extraction (OpenAI)
+  -> Extraction Provider Chain (Gemini x N -> OpenAI fallback)
   -> User Claim Review & Correction
   -> Concurrent Five-Check Execution
   -> Deterministic Scoring & Label Gates
   -> Evidence-Grounded Summary & Next Steps
   -> Streaming Result UI with Evidence Cards
 ```
+
+### Extraction Provider Chain
+
+Structured claim extraction uses a robust multi-provider fallback chain:
+1. **Gemini Rotation (Primary):** Iterates through comma-separated `GEMINI_API_KEYS` in sequence using schema-constrained JSON output.
+2. **OpenAI Fallback:** If all Gemini keys hit quota limits or fail, falls back to OpenAI (`gpt-4o-mini`) with the identical `ExtractedClaims` schema.
+3. **Honest Unavailable:** If all providers fail or are unconfigured, returns an honest `unavailable` status (HTTP 503) without fabricating claims.
+4. Once a provider succeeds for a scan, that scan is completed on that provider. All extracted fee claims are cross-checked against source text to discard fabricated quotes.
 
 ### The Five Checks
 
@@ -183,10 +191,17 @@ cp .env.example .env.local
 Fill in your API keys in `.env.local`:
 
 ```dotenv
+# Comma-separated Gemini API keys (primary rotation)
+GEMINI_API_KEYS=key1,key2
+GEMINI_MODEL=gemini-1.5-flash
+
+# Fallback extraction provider
 OPENAI_API_KEY=your_openai_api_key
+OPENAI_MODEL=gpt-4o-mini
+
+# Verification Providers
 SERPAPI_API_KEY=your_serpapi_api_key
 WHOISXML_API_KEY=your_whoisxml_api_key
-OPENAI_MODEL=gpt-4o-mini
 OPENCORPORATES_API_KEY=
 ```
 

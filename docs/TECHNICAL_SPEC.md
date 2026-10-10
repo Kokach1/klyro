@@ -23,20 +23,26 @@ tests/                     rule, provider failure and flow tests
 ## Environment and provider setup
 Required secrets:
 ```dotenv
+GEMINI_API_KEYS=
 OPENAI_API_KEY=
 SERPAPI_KEY=
 WHOISXML_KEY=
 ```
-Optional configuration: `OPENAI_MODEL` (select a structured-output-capable model actually available to the team), `OPENCORPORATES_API_KEY` (only with approved suitable access). Fail safely if model access is unconfirmed. Do not hardcode a claimed hackathon model or assume coding-tool credits are an API key.
+Optional configuration: `GEMINI_MODEL`, `OPENAI_MODEL`, `OPENCORPORATES_API_KEY`. Fail safely if model access is unconfirmed. Do not hardcode a claimed hackathon model or assume coding-tool credits are an API key.
 
 Use `.env.local` for local secrets and Vercel server environment variables for deployment. Commit only blank `.env.example`; gitignore `.env*` except that example. Never use `NEXT_PUBLIC_` for secrets. Never include user-pasted keys in code, fixtures, screenshots, responses, telemetry or files. If a key was pasted into chat, rotate it before deployment. WHOIS sample JSON is response data, not a credential.
 
-Select SerpAPI for this build, not both SerpAPI and Brave. Make at most three SerpAPI requests per scan, one each for careers, registration and complaints; reuse returned candidates across checks when helpful. Return explicit unavailable states on quota or missing keys. Do not hardcode free quotas or purchase plans.
+Extraction provider chain:
+- Primary: try `GEMINI_API_KEYS` in order (comma-separated list of keys rotated sequentially).
+- Fallback: if all Gemini keys are quota-limited or fail, fall back to OpenAI (`gpt-4o-mini`) using `OPENAI_API_KEY` with structured outputs and the exact same `ExtractedClaims` schema.
+- Unavailable: if OpenAI also fails or is unconfigured, return extraction `unavailable` with an honest reason (HTTP 503); never fake a result.
+- Identical schema validation and fee quote verification applies to both providers. Once a provider succeeds for a scan, finish that scan on it.
 
 Provider adapters:
+- Gemini: POST `https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent` with JSON `responseSchema` constrained to `ExtractedClaims`. Detect 429 / RESOURCE_EXHAUSTED and rotate keys.
+- OpenAI: server SDK Responses / Chat Completions API with schema-constrained structured output for fallback extraction and summaries.
 - SerpAPI: GET `https://serpapi.com/search` with URLSearchParams `engine=google`, `q`, `api_key`, `output=json`, `gl=in`, `hl=en`. Parse `organic_results` defensively; use title/link/snippet as discovery leads, not automatically verified facts. Validate errors even on HTTP 200. Never expose a credential-bearing search URL. Queries use company, role, location and public domain only, not personal phones or recruiter email.
 - WhoisXML: POST `https://www.whoisxmlapi.com/whoisserver/WhoisService` with JSON `apiKey`, `domainName`, `outputFormat: "JSON"`. Parse the `WhoisRecord` wrapper and `registryData` fallback. Inspect provider errors as well as HTTP status. Use creation date, not audit/updated/expiry dates, to calculate age. Treat privacy masking separately from a missing date.
-- OpenAI: use the server SDK Responses API with schema-constrained structured output for extraction and summaries. Validate refusal, incomplete output and schema failures. Use a configured model supported by the team's actual key. Never let a model supply the label, risk index or invented URLs.
 - OpenCorporates: optional adapter only after access and licensing are confirmed. Search fallback remains the default without a key; it does not require a fourth search call.
 
 ## Proposed limits

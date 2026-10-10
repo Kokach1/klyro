@@ -4,6 +4,8 @@
  */
 
 export interface AppEnv {
+  GEMINI_API_KEYS: string[];
+  GEMINI_MODEL?: string;
   OPENAI_API_KEY?: string;
   SERPAPI_API_KEY?: string;
   WHOISXML_API_KEY?: string;
@@ -12,7 +14,19 @@ export interface AppEnv {
 }
 
 export function getServerEnv(): AppEnv {
+  const geminiKeysRaw =
+    process.env.GEMINI_API_KEYS?.trim() ||
+    process.env.GEMINI_API_KEY?.trim() ||
+    "";
+
+  const geminiKeys = geminiKeysRaw
+    .split(",")
+    .map((k) => k.trim())
+    .filter((k) => k.length > 0);
+
   return {
+    GEMINI_API_KEYS: geminiKeys,
+    GEMINI_MODEL: process.env.GEMINI_MODEL?.trim() || undefined,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY?.trim() || undefined,
     // Accept SERPAPI_API_KEY as primary, SERPAPI_KEY as fallback per spec
     SERPAPI_API_KEY: (

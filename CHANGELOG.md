@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+### 2026-10-10T23:35:00+05:30 — Implement Gemini-then-OpenAI fallback provider chain for extraction
+
+- Changed: Added `lib/providers/gemini.ts` and `lib/providers/extraction-chain.ts`; updated `app/api/extract/route.ts`, `lib/env.ts`, `.env.example`, and added `tests/extraction-chain.test.ts`.
+- Why: Support sequential rotation across multiple Gemini API keys (`GEMINI_API_KEYS`), automatically falling back to OpenAI (`OPENAI_API_KEY`) when Gemini quota is exhausted, and returning honest 503 unavailable status if all providers fail.
+- Validation: 35 automated Vitest tests passed including key rotation, fallback, and honest exhaustion error without credential leakage.
+- Limitations: Server-side only; once a provider succeeds for a scan, that scan finishes on it.
+
 ### 2026-10-10T22:30:00+05:30 — Failure testing, secret scanning, and visual responsive verification
 
 - Changed: Added `tests/failure-and-edge-cases.test.ts`, ran bundle secret scanner and zero-emoji verification, verified viewports at 320px, 390px, and desktop.

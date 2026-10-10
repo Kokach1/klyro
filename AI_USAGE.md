@@ -14,6 +14,7 @@ Use Codex during the hackathon and briefly document its actual contribution here
 | 2026-10-10 22:20 IST | Antigravity / Gemini 3.8 Flash | Verification API & Streaming | Built `app/api/verify/route.ts` with NDJSON streaming, 15s check timeouts, partial results, and rule fallback summaries. | Checked error responses and stream termination handling. | Verified streaming route handler and contracts. |
 | 2026-10-10 22:25 IST | Antigravity / Gemini 3.8 Flash | Results UI & Fixtures | Implemented `components/RiskDial.tsx`, `components/CheckCard.tsx`, `components/ResultsSection.tsx`, and `fixtures/demo-cases.ts`. | Verified dial renders 0-100 without percent sign, and demo banner displays. | Browser visual inspection at desktop, 390px, and 320px passed. |
 | 2026-10-10 22:30 IST | Antigravity / Gemini 3.8 Flash | Failure Testing & Security | Created `tests/failure-and-edge-cases.test.ts`, ran bundle secret scanner and zero-emoji verification. | Verified prompt injection resistance and client bundle free of secrets. | All 30 Vitest tests passed; zero emojis detected. |
+| 2026-10-10 23:35 IST | Antigravity / Gemini 3.8 Flash | Extraction Provider Chain | Implemented Gemini x N rotation falling back to OpenAI in `lib/providers/extraction-chain.ts` and `lib/providers/gemini.ts`. | Verified identical schema, key sanitization, and honest 503 error handling. | 35 Vitest tests passed (`tests/extraction-chain.test.ts`). |
 
 ## Template preparation
 
