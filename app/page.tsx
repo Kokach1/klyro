@@ -269,37 +269,37 @@ export default function Home() {
   };
 
   return (
-    <div style={{ maxWidth: "var(--max-width)", margin: "0 auto", padding: "24px 16px" }}>
+    <div style={{ maxWidth: "var(--max-width)", margin: "0 auto", padding: "28px 16px" }}>
       {/* Header */}
       <header
         style={{
-          borderBottom: "1px solid var(--border-divider)",
-          paddingBottom: "16px",
-          marginBottom: "24px",
+          borderBottom: "3px solid #000000",
+          paddingBottom: "18px",
+          marginBottom: "28px",
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-          <h1 style={{ fontSize: "24px", fontWeight: 700, color: "var(--text-main)" }}>
+          <h1 style={{ fontSize: "28px", fontWeight: 900, color: "#000000", letterSpacing: "-0.5px" }}>
             Job Scam Detector
           </h1>
           <nav aria-label="Quick links">
-            <a href="#methodology" style={{ fontSize: "14px", fontWeight: 500 }}>
+            <a href="#methodology" style={{ fontSize: "13px", fontWeight: 700, textDecoration: "underline" }}>
               Methodology
             </a>
           </nav>
         </div>
-        <p style={{ color: "var(--text-secondary)", fontSize: "15px", marginTop: "6px" }}>
-          Check a job post before you apply or pay.
+        <p style={{ color: "#333333", fontSize: "15px", marginTop: "6px", fontWeight: 500 }}>
+          Check a job post before you apply or pay. Evidence-backed. No AI guessing.
         </p>
 
         {/* Demo Fixtures Quick Links */}
         <div
           style={{
-            marginTop: "12px",
-            padding: "8px 12px",
-            backgroundColor: "var(--surface-color)",
-            border: "1px solid var(--border-divider)",
-            borderRadius: "var(--radius-sm)",
+            marginTop: "14px",
+            padding: "10px 14px",
+            backgroundColor: "#FFFFFF",
+            border: "3px solid #000000",
+            boxShadow: "4px 4px 0 #000000",
             display: "flex",
             alignItems: "center",
             gap: "10px",
@@ -307,67 +307,68 @@ export default function Home() {
             fontSize: "13px",
           }}
         >
-          <span style={{ fontWeight: 600, color: "var(--text-secondary)" }}>
-            Load demo fixtures:
+          <span style={{ fontWeight: 700, color: "#000000" }}>
+            Load demo:
           </span>
           <button
             type="button"
             onClick={() => handleLoadFixture(FIXTURE_OFFICIAL_ROLE)}
             style={{
-              background: "none",
-              border: "none",
-              color: "var(--color-action)",
+              padding: "4px 10px",
+              border: "2px solid #000000",
+              backgroundColor: "#7FBC8C",
+              color: "#000000",
+              fontWeight: 700,
               cursor: "pointer",
-              textDecoration: "underline",
-              fontSize: "13px",
+              fontSize: "12px",
             }}
           >
             Official role (Safe)
           </button>
-          <span>&bull;</span>
           <button
             type="button"
             onClick={() => handleLoadFixture(FIXTURE_PAYMENT_FORWARD)}
             style={{
-              background: "none",
-              border: "none",
-              color: "var(--color-danger)",
+              padding: "4px 10px",
+              border: "2px solid #000000",
+              backgroundColor: "#FF6B6B",
+              color: "#000000",
+              fontWeight: 700,
               cursor: "pointer",
-              textDecoration: "underline",
-              fontSize: "13px",
+              fontSize: "12px",
             }}
           >
-            Payment demand forward (Likely Scam)
+            Payment demand (Scam)
           </button>
-          <span>&bull;</span>
           <button
             type="button"
             onClick={() => handleLoadFixture(FIXTURE_PAID_COURSE)}
             style={{
-              background: "none",
-              border: "none",
-              color: "var(--color-caution)",
+              padding: "4px 10px",
+              border: "2px solid #000000",
+              backgroundColor: "#FFB347",
+              color: "#000000",
+              fontWeight: 700,
               cursor: "pointer",
-              textDecoration: "underline",
-              fontSize: "13px",
+              fontSize: "12px",
             }}
           >
-            Paid training offer (Caution)
+            Paid training (Caution)
           </button>
-          <span>&bull;</span>
           <button
             type="button"
             onClick={() => handleLoadFixture(FIXTURE_UNAVAILABLE_PROVIDERS)}
             style={{
-              background: "none",
-              border: "none",
-              color: "var(--text-secondary)",
+              padding: "4px 10px",
+              border: "2px solid #000000",
+              backgroundColor: "#E0E0E0",
+              color: "#000000",
+              fontWeight: 700,
               cursor: "pointer",
-              textDecoration: "underline",
-              fontSize: "13px",
+              fontSize: "12px",
             }}
           >
-            Missing API keys (Unavailable)
+            Missing keys (Unavailable)
           </button>
         </div>
       </header>
@@ -415,30 +416,16 @@ export default function Home() {
         {/* Anchor without state empty fallback */}
         {stage === "review" && !extractedClaims && (
           <div
-            style={{
-              backgroundColor: "var(--surface-color)",
-              border: "1px solid var(--border-divider)",
-              borderRadius: "var(--radius-card)",
-              padding: "24px",
-              textAlign: "center",
-              marginBottom: "24px",
-            }}
+            className="nb-card"
+            style={{ textAlign: "center", marginBottom: "24px" }}
           >
-            <p style={{ marginBottom: "12px", color: "var(--text-secondary)" }}>
+            <p style={{ marginBottom: "14px", color: "#333333" }}>
               No check in this session.
             </p>
             <button
               type="button"
               onClick={handleStartNewScan}
-              style={{
-                backgroundColor: "var(--color-action)",
-                color: "#FFFFFF",
-                border: "none",
-                borderRadius: "var(--radius-sm)",
-                padding: "8px 16px",
-                cursor: "pointer",
-                fontWeight: 600,
-              }}
+              className="btn-primary"
             >
               Start a check
             </button>
@@ -447,30 +434,16 @@ export default function Home() {
 
         {stage === "results" && !verdictResult && !isRunningChecks && (
           <div
-            style={{
-              backgroundColor: "var(--surface-color)",
-              border: "1px solid var(--border-divider)",
-              borderRadius: "var(--radius-card)",
-              padding: "24px",
-              textAlign: "center",
-              marginBottom: "24px",
-            }}
+            className="nb-card"
+            style={{ textAlign: "center", marginBottom: "24px" }}
           >
-            <p style={{ marginBottom: "12px", color: "var(--text-secondary)" }}>
+            <p style={{ marginBottom: "14px", color: "#333333" }}>
               No check in this session.
             </p>
             <button
               type="button"
               onClick={handleStartNewScan}
-              style={{
-                backgroundColor: "var(--color-action)",
-                color: "#FFFFFF",
-                border: "none",
-                borderRadius: "var(--radius-sm)",
-                padding: "8px 16px",
-                cursor: "pointer",
-                fontWeight: 600,
-              }}
+              className="btn-primary"
             >
               Start a check
             </button>

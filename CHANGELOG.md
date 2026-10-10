@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+### 2026-10-11T00:50:00+05:30 — Restyle UI with neo-brutalism design system
+
+- Changed: Updated `app/globals.css`, `app/page.tsx`, `components/CheckCard.tsx`, `components/ClaimReview.tsx`, `components/InputForm.tsx`, `components/MethodologySection.tsx`, `components/ResultsSection.tsx`, and `components/RiskDial.tsx`.
+- Why: Implement neo-brutalism visual theme with cream page background (`#FFFDF5`), white cards, 3px solid black borders, hard offset shadows (`6px 6px 0 #000`, `4px 4px 0 #000`), 0 border-radius sharp edges, bold headings, primary action yellow (`#FFDC58`), safe green (`#7FBC8C`), caution orange (`#FFB347`), warning red (`#FF6B6B`), monospace risk score numbers and evidence URLs, button hover/press translations, input focus shadows, and bordered status chips.
+- Validation: 35 automated Vitest tests passed, `npm run build` compiled without errors, and local Next.js production server verified.
+- Limitations: None; visual presentation only without altering extraction, checks, scoring, or page logic.
+
 ### 2026-10-10T23:35:00+05:30 — Implement Gemini-then-OpenAI fallback provider chain for extraction
 
 - Changed: Added `lib/providers/gemini.ts` and `lib/providers/extraction-chain.ts`; updated `app/api/extract/route.ts`, `lib/env.ts`, `.env.example`, and added `tests/extraction-chain.test.ts`.

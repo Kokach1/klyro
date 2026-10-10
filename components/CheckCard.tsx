@@ -33,41 +33,13 @@ export function CheckCard({ check, uiState = "done" }: CheckCardProps) {
   // Render status badge
   const renderStatusBadge = () => {
     if (uiState === "pending") {
-      return (
-        <span
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "4px",
-            fontSize: "12px",
-            fontWeight: 600,
-            padding: "4px 8px",
-            borderRadius: "4px",
-            backgroundColor: "var(--border-divider)",
-            color: "var(--text-secondary)",
-          }}
-        >
-          Pending
-        </span>
-      );
+      return <span className="badge badge-neutral">Pending</span>;
     }
 
     if (uiState === "running") {
       return (
-        <span
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "6px",
-            fontSize: "12px",
-            fontWeight: 600,
-            padding: "4px 8px",
-            borderRadius: "4px",
-            backgroundColor: "var(--color-safe-bg)",
-            color: "var(--color-action)",
-          }}
-        >
-          <SpinnerIcon size={12} color="var(--color-action)" />
+        <span className="badge badge-running">
+          <SpinnerIcon size={11} color="#000000" />
           Running
         </span>
       );
@@ -76,78 +48,29 @@ export function CheckCard({ check, uiState = "done" }: CheckCardProps) {
     switch (check.status) {
       case "completed":
         return (
-          <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "4px",
-              fontSize: "12px",
-              fontWeight: 600,
-              padding: "4px 8px",
-              borderRadius: "4px",
-              backgroundColor: "var(--color-safe-bg)",
-              color: "var(--color-action)",
-            }}
-          >
-            <CheckCircleIcon size={13} color="var(--color-action)" />
+          <span className="badge badge-safe">
+            <CheckCircleIcon size={12} color="#000000" />
             Completed
           </span>
         );
       case "inconclusive":
         return (
-          <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "4px",
-              fontSize: "12px",
-              fontWeight: 600,
-              padding: "4px 8px",
-              borderRadius: "4px",
-              backgroundColor: "var(--color-caution-bg)",
-              color: "var(--color-caution)",
-            }}
-          >
-            <AlertTriangleIcon size={13} color="var(--color-caution)" />
+          <span className="badge badge-caution">
+            <AlertTriangleIcon size={12} color="#000000" />
             Inconclusive
           </span>
         );
       case "unavailable":
         return (
-          <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "4px",
-              fontSize: "12px",
-              fontWeight: 600,
-              padding: "4px 8px",
-              borderRadius: "4px",
-              backgroundColor: "var(--color-danger-bg)",
-              color: "var(--color-danger)",
-            }}
-          >
-            <AlertCircleIcon size={13} color="var(--color-danger)" />
-            Check unavailable
+          <span className="badge badge-danger">
+            <AlertCircleIcon size={12} color="#000000" />
+            Unavailable
           </span>
         );
       case "not_applicable":
         return (
-          <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "4px",
-              fontSize: "12px",
-              fontWeight: 600,
-              padding: "4px 8px",
-              borderRadius: "4px",
-              backgroundColor: "var(--bg-color)",
-              color: "var(--text-secondary)",
-              border: "1px solid var(--border-divider)",
-            }}
-          >
-            <MinusCircleIcon size={13} color="var(--text-secondary)" />
+          <span className="badge badge-neutral">
+            <MinusCircleIcon size={12} color="#000000" />
             Not applicable
           </span>
         );
@@ -157,13 +80,8 @@ export function CheckCard({ check, uiState = "done" }: CheckCardProps) {
   return (
     <article
       id={`card-${check.id}`}
-      style={{
-        backgroundColor: "var(--surface-color)",
-        border: "1px solid var(--border-divider)",
-        borderRadius: "var(--radius-card)",
-        padding: "20px",
-        marginBottom: "16px",
-      }}
+      className="nb-card"
+      style={{ marginBottom: "20px" }}
     >
       <div
         style={{
@@ -171,10 +89,10 @@ export function CheckCard({ check, uiState = "done" }: CheckCardProps) {
           justifyContent: "space-between",
           alignItems: "flex-start",
           gap: "12px",
-          marginBottom: "10px",
+          marginBottom: "12px",
         }}
       >
-        <h3 style={{ fontSize: "17px", fontWeight: 600, color: "var(--text-main)" }}>
+        <h3 style={{ fontSize: "16px", fontWeight: 800, color: "#000000" }}>
           {title}
         </h3>
         {renderStatusBadge()}
@@ -184,9 +102,10 @@ export function CheckCard({ check, uiState = "done" }: CheckCardProps) {
       <p
         style={{
           fontSize: "15px",
-          color: "var(--text-main)",
-          fontWeight: 500,
+          color: "#000000",
+          fontWeight: 600,
           marginBottom: "8px",
+          lineHeight: "1.4",
         }}
       >
         {check.finding}
@@ -197,15 +116,16 @@ export function CheckCard({ check, uiState = "done" }: CheckCardProps) {
         <div
           style={{
             fontSize: "13px",
-            color: check.status === "unavailable" ? "var(--color-danger)" : "var(--color-caution)",
+            color: "#000000",
             backgroundColor:
-              check.status === "unavailable" ? "var(--color-danger-bg)" : "var(--color-caution-bg)",
+              check.status === "unavailable" ? "#FFE5E5" : "#FFF3E0",
             padding: "8px 10px",
-            borderRadius: "4px",
+            border: `3px solid ${check.status === "unavailable" ? "var(--color-danger)" : "var(--color-caution)"}`,
             marginBottom: "8px",
+            fontWeight: 600,
           }}
         >
-          <strong>Reason ({check.reasonCode}):</strong> {check.reason}
+          Reason ({check.reasonCode}): {check.reason}
         </div>
       )}
 
@@ -213,12 +133,14 @@ export function CheckCard({ check, uiState = "done" }: CheckCardProps) {
       <p
         style={{
           fontSize: "13px",
-          color: "var(--text-secondary)",
-          lineHeight: "1.4",
-          marginBottom: "12px",
+          color: "#333333",
+          lineHeight: "1.5",
+          marginBottom: "14px",
+          borderLeft: "3px solid #000000",
+          paddingLeft: "8px",
         }}
       >
-        <strong>Why it matters:</strong> {check.whyItMatters}
+        <strong>Why it matters: </strong>{check.whyItMatters}
       </p>
 
       {/* Check metadata and toggle */}
@@ -228,9 +150,10 @@ export function CheckCard({ check, uiState = "done" }: CheckCardProps) {
           justifyContent: "space-between",
           alignItems: "center",
           fontSize: "12px",
-          color: "var(--text-secondary)",
-          borderTop: "1px solid var(--border-divider)",
+          color: "#555555",
+          borderTop: "2px solid #000000",
           paddingTop: "10px",
+          fontFamily: "var(--font-mono)",
         }}
       >
         <span>
@@ -241,25 +164,15 @@ export function CheckCard({ check, uiState = "done" }: CheckCardProps) {
           <button
             type="button"
             onClick={() => setIsExpanded(!isExpanded)}
-            style={{
-              background: "none",
-              border: "none",
-              color: "var(--color-action)",
-              fontSize: "13px",
-              fontWeight: 500,
-              cursor: "pointer",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "4px",
-              padding: "4px",
-            }}
+            className="btn-ghost"
+            style={{ fontFamily: "var(--font-family)" }}
           >
             <span>
               {isExpanded
                 ? "Hide evidence"
-                : `View supporting evidence (${check.evidence.length})`}
+                : `View evidence (${check.evidence.length})`}
             </span>
-            {isExpanded ? <ChevronUpIcon size={14} /> : <ChevronDownIcon size={14} />}
+            {isExpanded ? <ChevronUpIcon size={13} /> : <ChevronDownIcon size={13} />}
           </button>
         )}
       </div>
@@ -270,7 +183,7 @@ export function CheckCard({ check, uiState = "done" }: CheckCardProps) {
           style={{
             marginTop: "14px",
             paddingTop: "12px",
-            borderTop: "1px dashed var(--border-divider)",
+            borderTop: "2px dashed #000000",
             display: "flex",
             flexDirection: "column",
             gap: "10px",
@@ -280,9 +193,8 @@ export function CheckCard({ check, uiState = "done" }: CheckCardProps) {
             <div
               key={ev.id}
               style={{
-                backgroundColor: "var(--bg-color)",
-                border: "1px solid var(--border-divider)",
-                borderRadius: "var(--radius-sm)",
+                backgroundColor: "#FFFDF5",
+                border: "2px solid #000000",
                 padding: "10px 12px",
                 fontSize: "13px",
               }}
@@ -292,23 +204,15 @@ export function CheckCard({ check, uiState = "done" }: CheckCardProps) {
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "baseline",
-                  marginBottom: "4px",
+                  marginBottom: "6px",
+                  gap: "8px",
+                  flexWrap: "wrap",
                 }}
               >
-                <span style={{ fontWeight: 600, color: "var(--text-main)" }}>
+                <span style={{ fontWeight: 700, color: "#000000" }}>
                   {ev.title}
                 </span>
-                <span
-                  style={{
-                    fontSize: "11px",
-                    fontWeight: 600,
-                    textTransform: "uppercase",
-                    padding: "2px 6px",
-                    borderRadius: "3px",
-                    backgroundColor: "var(--border-divider)",
-                    color: "var(--text-secondary)",
-                  }}
-                >
+                <span className="badge badge-neutral" style={{ flexShrink: 0 }}>
                   {ev.kind === "search_snippet"
                     ? "Search snippet only"
                     : ev.classification.replace("_", " ")}
@@ -319,11 +223,10 @@ export function CheckCard({ check, uiState = "done" }: CheckCardProps) {
                 <p
                   style={{
                     fontStyle: "italic",
-                    color: "var(--text-main)",
+                    color: "#000000",
                     backgroundColor: "#FFFFFF",
                     padding: "6px 8px",
-                    borderRadius: "4px",
-                    border: "1px solid var(--border-divider)",
+                    border: "2px solid #000000",
                     marginBottom: "6px",
                     wordBreak: "break-word",
                   }}
@@ -338,7 +241,8 @@ export function CheckCard({ check, uiState = "done" }: CheckCardProps) {
                   justifyContent: "space-between",
                   alignItems: "center",
                   fontSize: "11px",
-                  color: "var(--text-secondary)",
+                  color: "#555555",
+                  fontFamily: "var(--font-mono)",
                 }}
               >
                 <span>Provider: {ev.provider || "Direct input quote"}</span>
@@ -351,9 +255,10 @@ export function CheckCard({ check, uiState = "done" }: CheckCardProps) {
                       display: "inline-flex",
                       alignItems: "center",
                       gap: "3px",
+                      fontFamily: "var(--font-mono)",
                     }}
                   >
-                    <span>Source link</span>
+                    <span>Source</span>
                     <ExternalLinkIcon size={11} />
                   </a>
                 )}

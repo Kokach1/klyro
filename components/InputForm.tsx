@@ -87,17 +87,12 @@ export function InputForm({
   return (
     <section
       aria-labelledby="input-section-heading"
-      style={{
-        backgroundColor: "var(--surface-color)",
-        border: "1px solid var(--border-divider)",
-        borderRadius: "var(--radius-card)",
-        padding: "24px 20px",
-        marginBottom: "24px",
-      }}
+      className="nb-card"
+      style={{ marginBottom: "28px" }}
     >
       <h2
         id="input-section-heading"
-        style={{ fontSize: "18px", fontWeight: 600, marginBottom: "16px" }}
+        style={{ fontSize: "20px", fontWeight: 800, marginBottom: "18px", letterSpacing: "-0.3px" }}
       >
         Submit job posting
       </h2>
@@ -106,75 +101,48 @@ export function InputForm({
       <div
         role="tablist"
         aria-label="Input mode"
-        style={{
-          display: "flex",
-          gap: "8px",
-          marginBottom: "16px",
-        }}
+        style={{ display: "flex", gap: "10px", marginBottom: "18px" }}
       >
-        <button
-          type="button"
-          role="tab"
-          id="tab-message-text"
-          aria-selected={inputType === "text"}
-          aria-controls="panel-message-text"
-          onClick={() => handleModeChange("text")}
-          disabled={isLoading}
-          style={{
-            minHeight: "44px",
-            padding: "8px 16px",
-            borderRadius: "var(--radius-sm)",
-            border: "1px solid",
-            borderColor: inputType === "text" ? "var(--color-action)" : "var(--border-divider)",
-            backgroundColor: inputType === "text" ? "var(--color-safe-bg)" : "var(--surface-color)",
-            color: inputType === "text" ? "var(--color-action)" : "var(--text-secondary)",
-            fontWeight: inputType === "text" ? 600 : 400,
-            cursor: isLoading ? "not-allowed" : "pointer",
-          }}
-        >
-          Message text
-        </button>
-        <button
-          type="button"
-          role="tab"
-          id="tab-job-link"
-          aria-selected={inputType === "url"}
-          aria-controls="panel-job-link"
-          onClick={() => handleModeChange("url")}
-          disabled={isLoading}
-          style={{
-            minHeight: "44px",
-            padding: "8px 16px",
-            borderRadius: "var(--radius-sm)",
-            border: "1px solid",
-            borderColor: inputType === "url" ? "var(--color-action)" : "var(--border-divider)",
-            backgroundColor: inputType === "url" ? "var(--color-safe-bg)" : "var(--surface-color)",
-            color: inputType === "url" ? "var(--color-action)" : "var(--text-secondary)",
-            fontWeight: inputType === "url" ? 600 : 400,
-            cursor: isLoading ? "not-allowed" : "pointer",
-          }}
-        >
-          Job link
-        </button>
+        {(["text", "url"] as const).map((type) => (
+          <button
+            key={type}
+            type="button"
+            role="tab"
+            id={type === "text" ? "tab-message-text" : "tab-job-link"}
+            aria-selected={inputType === type}
+            aria-controls={type === "text" ? "panel-message-text" : "panel-job-link"}
+            onClick={() => handleModeChange(type)}
+            disabled={isLoading}
+            style={{
+              minHeight: "40px",
+              padding: "6px 18px",
+              border: "3px solid #000000",
+              backgroundColor: inputType === type ? "#FFDC58" : "#FFFFFF",
+              color: "#000000",
+              fontWeight: 700,
+              cursor: isLoading ? "not-allowed" : "pointer",
+              boxShadow: inputType === type ? "3px 3px 0 #000000" : "none",
+              transition: "box-shadow 0.08s ease",
+            }}
+          >
+            {type === "text" ? "Message text" : "Job link"}
+          </button>
+        ))}
       </div>
 
       <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: "12px" }}>
+        <div style={{ marginBottom: "14px" }}>
           {inputType === "text" ? (
             <div id="panel-message-text" role="tabpanel" aria-labelledby="tab-message-text">
               <label
                 htmlFor="message-text-input"
-                style={{
-                  display: "block",
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  marginBottom: "6px",
-                }}
+                style={{ display: "block", fontSize: "14px", fontWeight: 700, marginBottom: "6px" }}
               >
                 Forwarded message or email body
               </label>
               <textarea
                 id="message-text-input"
+                className="nb-input"
                 rows={8}
                 value={inputValue}
                 onChange={handleInputChange}
@@ -182,16 +150,8 @@ export function InputForm({
                 placeholder="Paste the full forwarded job message"
                 aria-describedby={displayError ? "input-error-desc" : undefined}
                 style={{
-                  width: "100%",
-                  padding: "12px",
-                  borderRadius: "var(--radius-sm)",
-                  border: "1px solid",
-                  borderColor: displayError ? "var(--color-danger)" : "var(--border-divider)",
-                  backgroundColor: "#FFFFFF",
-                  color: "var(--text-main)",
-                  fontSize: "15px",
-                  lineHeight: "1.5",
                   resize: "vertical",
+                  border: displayError ? "3px solid var(--color-danger)" : undefined,
                 }}
               />
             </div>
@@ -199,33 +159,21 @@ export function InputForm({
             <div id="panel-job-link" role="tabpanel" aria-labelledby="tab-job-link">
               <label
                 htmlFor="job-link-input"
-                style={{
-                  display: "block",
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  marginBottom: "6px",
-                }}
+                style={{ display: "block", fontSize: "14px", fontWeight: 700, marginBottom: "6px" }}
               >
                 Public job posting URL
               </label>
               <input
                 id="job-link-input"
                 type="url"
+                className="nb-input"
                 value={inputValue}
                 onChange={handleInputChange}
                 disabled={isLoading}
                 placeholder="Paste a public job posting URL"
                 aria-describedby={displayError ? "input-error-desc" : undefined}
                 style={{
-                  width: "100%",
-                  minHeight: "44px",
-                  padding: "10px 12px",
-                  borderRadius: "var(--radius-sm)",
-                  border: "1px solid",
-                  borderColor: displayError ? "var(--color-danger)" : "var(--border-divider)",
-                  backgroundColor: "#FFFFFF",
-                  color: "var(--text-main)",
-                  fontSize: "15px",
+                  border: displayError ? "3px solid var(--color-danger)" : undefined,
                 }}
               />
             </div>
@@ -237,17 +185,13 @@ export function InputForm({
               display: "flex",
               justifyContent: "flex-end",
               fontSize: "12px",
-              color: isOverLimit
-                ? "var(--color-danger)"
-                : isNearLimit
-                ? "var(--color-caution)"
-                : "var(--text-secondary)",
-              marginTop: "4px",
+              fontWeight: 600,
+              fontFamily: "var(--font-mono)",
+              color: isOverLimit ? "var(--color-danger)" : isNearLimit ? "#B85C00" : "#555555",
+              marginTop: "5px",
             }}
           >
-            <span>
-              {currentLength.toLocaleString()} / {currentLimit.toLocaleString()} characters
-            </span>
+            {currentLength.toLocaleString()} / {currentLimit.toLocaleString()} chars
           </div>
         </div>
 
@@ -260,12 +204,13 @@ export function InputForm({
               display: "flex",
               alignItems: "center",
               gap: "8px",
-              backgroundColor: "var(--color-danger-bg)",
-              color: "var(--color-danger)",
+              backgroundColor: "#FFE5E5",
+              color: "#000000",
               padding: "10px 14px",
-              borderRadius: "var(--radius-sm)",
+              border: "3px solid var(--color-danger)",
               marginBottom: "16px",
               fontSize: "14px",
+              fontWeight: 600,
             }}
           >
             <AlertCircleIcon size={18} color="var(--color-danger)" />
@@ -277,9 +222,11 @@ export function InputForm({
         <p
           style={{
             fontSize: "13px",
-            color: "var(--text-secondary)",
-            lineHeight: "1.4",
-            marginBottom: "16px",
+            color: "#444444",
+            lineHeight: "1.5",
+            marginBottom: "18px",
+            borderLeft: "3px solid #000000",
+            paddingLeft: "10px",
           }}
         >
           Your posting is sent to AI services. Company/domain search terms are sent to search
@@ -291,32 +238,15 @@ export function InputForm({
         <button
           type="submit"
           id="btn-analyse"
+          className={
+            isLoading || inputValue.trim().length === 0 || isOverLimit
+              ? "btn-primary"
+              : "btn-primary"
+          }
           disabled={isLoading || inputValue.trim().length === 0 || isOverLimit}
-          style={{
-            minHeight: "44px",
-            padding: "10px 24px",
-            borderRadius: "var(--radius-sm)",
-            backgroundColor:
-              isLoading || inputValue.trim().length === 0 || isOverLimit
-                ? "var(--border-divider)"
-                : "var(--color-action)",
-            color:
-              isLoading || inputValue.trim().length === 0 || isOverLimit
-                ? "var(--text-secondary)"
-                : "#FFFFFF",
-            border: "none",
-            fontWeight: 600,
-            cursor:
-              isLoading || inputValue.trim().length === 0 || isOverLimit
-                ? "not-allowed"
-                : "pointer",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "8px",
-          }}
         >
-          {isLoading && <SpinnerIcon size={16} color="#FFFFFF" />}
-          <span>{isLoading ? "Reading the posting..." : "Analyse"}</span>
+          {isLoading && <SpinnerIcon size={16} color="#000000" />}
+          <span>{isLoading ? "Reading the posting..." : "Analyse posting"}</span>
         </button>
       </form>
     </section>

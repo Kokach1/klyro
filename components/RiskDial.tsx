@@ -23,11 +23,11 @@ export function RiskDial({ score, label }: RiskDialProps) {
   const normalizedScore = score !== null ? Math.max(0, Math.min(100, score)) : 0;
   const strokeDashoffset = arcLength - (arcLength * normalizedScore) / 100;
 
-  let strokeColor = "var(--color-action)";
+  let strokeColor = "#7FBC8C"; // safe
   if (label === "Caution") {
-    strokeColor = "var(--color-caution)";
+    strokeColor = "#FFB347";
   } else if (label === "Likely Scam") {
-    strokeColor = "var(--color-danger)";
+    strokeColor = "#FF6B6B";
   }
 
   return (
@@ -38,6 +38,9 @@ export function RiskDial({ score, label }: RiskDialProps) {
         alignItems: "center",
         justifyContent: "center",
         padding: "16px",
+        border: "3px solid #000000",
+        backgroundColor: "#FFFFFF",
+        boxShadow: "4px 4px 0 #000000",
       }}
       aria-label={`Rule-based risk index: ${score !== null ? score : "Unavailable"}`}
     >
@@ -53,9 +56,9 @@ export function RiskDial({ score, label }: RiskDialProps) {
           <path
             d="M 25 100 A 75 75 0 0 1 175 100"
             fill="none"
-            stroke="var(--border-divider)"
+            stroke="#E0E0E0"
             strokeWidth={strokeWidth}
-            strokeLinecap="round"
+            strokeLinecap="butt"
           />
           {/* Filled Risk Arc */}
           {score !== null && (
@@ -66,7 +69,7 @@ export function RiskDial({ score, label }: RiskDialProps) {
               strokeWidth={strokeWidth}
               strokeDasharray={arcLength}
               strokeDashoffset={strokeDashoffset}
-              strokeLinecap="round"
+              strokeLinecap="butt"
               style={{
                 transition: "stroke-dashoffset 0.6s ease-out",
               }}
@@ -86,22 +89,23 @@ export function RiskDial({ score, label }: RiskDialProps) {
         >
           <span
             style={{
-              fontSize: "36px",
-              fontWeight: 700,
-              color: strokeColor,
+              fontSize: "40px",
+              fontWeight: 800,
+              color: "#000000",
               lineHeight: "1",
               display: "block",
+              fontFamily: "var(--font-mono)",
             }}
           >
-            {score !== null ? score : "Unavailable"}
+            {score !== null ? score : "N/A"}
           </span>
           <span
             style={{
-              fontSize: "12px",
-              color: "var(--text-secondary)",
-              fontWeight: 600,
+              fontSize: "11px",
+              color: "#555555",
+              fontWeight: 700,
               textTransform: "uppercase",
-              letterSpacing: "0.5px",
+              letterSpacing: "0.8px",
             }}
           >
             Risk Index
@@ -118,9 +122,9 @@ export function RiskDial({ score, label }: RiskDialProps) {
         <span
           style={{
             display: "block",
-            fontSize: "14px",
-            fontWeight: 600,
-            color: "var(--text-main)",
+            fontSize: "13px",
+            fontWeight: 700,
+            color: "#000000",
           }}
         >
           Rule-based risk index
@@ -128,8 +132,8 @@ export function RiskDial({ score, label }: RiskDialProps) {
         <span
           style={{
             display: "block",
-            fontSize: "12px",
-            color: "var(--text-secondary)",
+            fontSize: "11px",
+            color: "#555555",
             marginTop: "2px",
           }}
         >

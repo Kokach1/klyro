@@ -99,24 +99,19 @@ export function ClaimReview({
     <section
       id="review"
       aria-labelledby="review-section-heading"
-      style={{
-        backgroundColor: "var(--surface-color)",
-        border: "1px solid var(--border-divider)",
-        borderRadius: "var(--radius-card)",
-        padding: "24px 20px",
-        marginBottom: "24px",
-      }}
+      className="nb-card"
+      style={{ marginBottom: "28px" }}
     >
-      <div style={{ marginBottom: "16px" }}>
+      <div style={{ marginBottom: "18px" }}>
         <h2
           id="review-section-heading"
           ref={headingRef}
           tabIndex={-1}
-          style={{ fontSize: "20px", fontWeight: 600, outline: "none", marginBottom: "8px" }}
+          style={{ fontSize: "20px", fontWeight: 800, outline: "none", marginBottom: "8px" }}
         >
           Review extracted claims
         </h2>
-        <p style={{ fontSize: "14px", color: "var(--text-secondary)" }}>
+        <p style={{ fontSize: "14px", color: "#333333", borderLeft: "3px solid #000000", paddingLeft: "10px" }}>
           Confirm or correct extracted details before verification. Note that original message
           text remains immutable for quote-based risk signals.
         </p>
@@ -125,28 +120,20 @@ export function ClaimReview({
       {/* Immutable Source Disclosure */}
       <div
         style={{
-          border: "1px solid var(--border-divider)",
-          borderRadius: "var(--radius-sm)",
+          border: "3px solid #000000",
           padding: "12px",
-          marginBottom: "20px",
-          backgroundColor: "var(--bg-color)",
+          marginBottom: "22px",
+          backgroundColor: "#FFFDF5",
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-secondary)" }}>
+          <span style={{ fontSize: "13px", fontWeight: 700, color: "#000000" }}>
             Original source text ({source.inputType === "url" ? "Fetched URL" : "Message text"})
           </span>
           <button
             type="button"
             onClick={() => setShowSourceText(!showSourceText)}
-            style={{
-              background: "none",
-              border: "none",
-              color: "var(--color-action)",
-              fontSize: "13px",
-              cursor: "pointer",
-              padding: "4px 8px",
-            }}
+            className="btn-ghost"
           >
             {showSourceText ? "Hide source text" : "View source text"}
           </button>
@@ -157,9 +144,10 @@ export function ClaimReview({
               <p
                 style={{
                   fontSize: "12px",
-                  color: "var(--text-secondary)",
+                  color: "#444444",
                   marginBottom: "6px",
                   wordBreak: "break-all",
+                  fontFamily: "var(--font-mono)",
                 }}
               >
                 Source URL: {source.url}
@@ -174,8 +162,8 @@ export function ClaimReview({
                 overflowY: "auto",
                 backgroundColor: "#FFFFFF",
                 padding: "8px",
-                borderRadius: "4px",
-                border: "1px solid var(--border-divider)",
+                border: "2px solid #000000",
+                fontFamily: "var(--font-mono)",
               }}
             >
               {source.text}
@@ -188,33 +176,27 @@ export function ClaimReview({
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
             gap: "16px",
-            marginBottom: "20px",
+            marginBottom: "22px",
           }}
         >
           {/* Company Name */}
           <div>
             <label
               htmlFor="field-company"
-              style={{ display: "block", fontSize: "14px", fontWeight: 500, marginBottom: "4px" }}
+              style={{ display: "block", fontSize: "14px", fontWeight: 700, marginBottom: "5px" }}
             >
               Company name *
             </label>
             <input
               id="field-company"
               type="text"
+              className="nb-input"
               value={claims.companyName ?? ""}
               placeholder="Unknown"
               onChange={(e) => handleFieldChange("companyName", e.target.value)}
               disabled={isRunningChecks}
-              style={{
-                width: "100%",
-                minHeight: "44px",
-                padding: "8px 12px",
-                borderRadius: "var(--radius-sm)",
-                border: "1px solid var(--border-divider)",
-              }}
             />
           </div>
 
@@ -222,24 +204,18 @@ export function ClaimReview({
           <div>
             <label
               htmlFor="field-role"
-              style={{ display: "block", fontSize: "14px", fontWeight: 500, marginBottom: "4px" }}
+              style={{ display: "block", fontSize: "14px", fontWeight: 700, marginBottom: "5px" }}
             >
               Job role *
             </label>
             <input
               id="field-role"
               type="text"
+              className="nb-input"
               value={claims.role ?? ""}
               placeholder="Unknown"
               onChange={(e) => handleFieldChange("role", e.target.value)}
               disabled={isRunningChecks}
-              style={{
-                width: "100%",
-                minHeight: "44px",
-                padding: "8px 12px",
-                borderRadius: "var(--radius-sm)",
-                border: "1px solid var(--border-divider)",
-              }}
             />
           </div>
 
@@ -247,26 +223,20 @@ export function ClaimReview({
           <div>
             <label
               htmlFor="field-domain"
-              style={{ display: "block", fontSize: "14px", fontWeight: 500, marginBottom: "4px" }}
+              style={{ display: "block", fontSize: "14px", fontWeight: 700, marginBottom: "5px" }}
             >
               Employer domain candidate
             </label>
             <input
               id="field-domain"
               type="text"
+              className="nb-input"
               value={claims.employerDomain ?? ""}
               placeholder="Unknown (e.g. acme.com)"
               onChange={(e) => handleFieldChange("employerDomain", e.target.value)}
               disabled={isRunningChecks}
-              style={{
-                width: "100%",
-                minHeight: "44px",
-                padding: "8px 12px",
-                borderRadius: "var(--radius-sm)",
-                border: "1px solid var(--border-divider)",
-              }}
             />
-            <span style={{ fontSize: "12px", color: "var(--text-secondary)", display: "block", marginTop: "4px" }}>
+            <span style={{ fontSize: "12px", color: "#555555", display: "block", marginTop: "4px" }}>
               Do not enter a free-email provider or job board.
             </span>
           </div>
@@ -275,24 +245,18 @@ export function ClaimReview({
           <div>
             <label
               htmlFor="field-salary"
-              style={{ display: "block", fontSize: "14px", fontWeight: 500, marginBottom: "4px" }}
+              style={{ display: "block", fontSize: "14px", fontWeight: 700, marginBottom: "5px" }}
             >
               Salary / Compensation
             </label>
             <input
               id="field-salary"
               type="text"
+              className="nb-input"
               value={claims.salary ?? ""}
               placeholder="Unknown"
               onChange={(e) => handleFieldChange("salary", e.target.value)}
               disabled={isRunningChecks}
-              style={{
-                width: "100%",
-                minHeight: "44px",
-                padding: "8px 12px",
-                borderRadius: "var(--radius-sm)",
-                border: "1px solid var(--border-divider)",
-              }}
             />
           </div>
 
@@ -300,24 +264,18 @@ export function ClaimReview({
           <div>
             <label
               htmlFor="field-location"
-              style={{ display: "block", fontSize: "14px", fontWeight: 500, marginBottom: "4px" }}
+              style={{ display: "block", fontSize: "14px", fontWeight: 700, marginBottom: "5px" }}
             >
               Location
             </label>
             <input
               id="field-location"
               type="text"
+              className="nb-input"
               value={claims.location ?? ""}
               placeholder="Unknown"
               onChange={(e) => handleFieldChange("location", e.target.value)}
               disabled={isRunningChecks}
-              style={{
-                width: "100%",
-                minHeight: "44px",
-                padding: "8px 12px",
-                borderRadius: "var(--radius-sm)",
-                border: "1px solid var(--border-divider)",
-              }}
             />
           </div>
 
@@ -325,13 +283,14 @@ export function ClaimReview({
           <div>
             <label
               htmlFor="field-years"
-              style={{ display: "block", fontSize: "14px", fontWeight: 500, marginBottom: "4px" }}
+              style={{ display: "block", fontSize: "14px", fontWeight: 700, marginBottom: "5px" }}
             >
               Claimed operating history (years)
             </label>
             <input
               id="field-years"
               type="number"
+              className="nb-input"
               min="0"
               max="200"
               value={claims.claimedOperatingYears ?? ""}
@@ -343,21 +302,14 @@ export function ClaimReview({
                 )
               }
               disabled={isRunningChecks}
-              style={{
-                width: "100%",
-                minHeight: "44px",
-                padding: "8px 12px",
-                borderRadius: "var(--radius-sm)",
-                border: "1px solid var(--border-divider)",
-              }}
             />
           </div>
         </div>
 
         {/* Contacts section */}
-        <div style={{ marginBottom: "20px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-            <span style={{ fontSize: "14px", fontWeight: 500 }}>
+        <div style={{ marginBottom: "22px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+            <span style={{ fontSize: "14px", fontWeight: 700 }}>
               Contacts ({claims.contacts.length} of 10)
             </span>
             {claims.contacts.length < 10 && (
@@ -365,21 +317,14 @@ export function ClaimReview({
                 type="button"
                 onClick={handleAddContact}
                 disabled={isRunningChecks}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "var(--color-action)",
-                  fontSize: "13px",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                }}
+                className="btn-ghost"
               >
                 + Add contact
               </button>
             )}
           </div>
           {claims.contacts.length === 0 ? (
-            <p style={{ fontSize: "13px", color: "var(--text-secondary)" }}>Unknown</p>
+            <p style={{ fontSize: "13px", color: "#555555" }}>Unknown</p>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               {claims.contacts.map((contact, idx) => (
@@ -391,13 +336,8 @@ export function ClaimReview({
                       handleContactChange(idx, "kind", e.target.value as "email" | "phone" | "other")
                     }
                     disabled={isRunningChecks}
-                    style={{
-                      minHeight: "44px",
-                      padding: "8px",
-                      borderRadius: "var(--radius-sm)",
-                      border: "1px solid var(--border-divider)",
-                      backgroundColor: "#FFFFFF",
-                    }}
+                    className="nb-input"
+                    style={{ width: "auto", flex: "0 0 auto" }}
                   >
                     <option value="email">Email</option>
                     <option value="phone">Phone</option>
@@ -410,28 +350,16 @@ export function ClaimReview({
                     placeholder="Contact detail"
                     onChange={(e) => handleContactChange(idx, "value", e.target.value)}
                     disabled={isRunningChecks}
-                    style={{
-                      flex: 1,
-                      minHeight: "44px",
-                      padding: "8px 12px",
-                      borderRadius: "var(--radius-sm)",
-                      border: "1px solid var(--border-divider)",
-                    }}
+                    className="nb-input"
+                    style={{ flex: 1 }}
                   />
                   <button
                     type="button"
                     onClick={() => handleRemoveContact(idx)}
                     disabled={isRunningChecks}
                     aria-label={`Remove contact ${idx + 1}`}
-                    style={{
-                      minHeight: "44px",
-                      padding: "8px 12px",
-                      borderRadius: "var(--radius-sm)",
-                      border: "1px solid var(--border-divider)",
-                      background: "none",
-                      color: "var(--color-danger)",
-                      cursor: "pointer",
-                    }}
+                    className="btn-secondary"
+                    style={{ padding: "8px 12px", minHeight: "44px", color: "#CC0000", flexShrink: 0 }}
                   >
                     Remove
                   </button>
@@ -442,9 +370,9 @@ export function ClaimReview({
         </div>
 
         {/* Links section */}
-        <div style={{ marginBottom: "20px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-            <span style={{ fontSize: "14px", fontWeight: 500 }}>
+        <div style={{ marginBottom: "22px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+            <span style={{ fontSize: "14px", fontWeight: 700 }}>
               Links ({claims.links.length} of 10)
             </span>
             {claims.links.length < 10 && (
@@ -452,21 +380,14 @@ export function ClaimReview({
                 type="button"
                 onClick={handleAddLink}
                 disabled={isRunningChecks}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "var(--color-action)",
-                  fontSize: "13px",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                }}
+                className="btn-ghost"
               >
                 + Add link
               </button>
             )}
           </div>
           {claims.links.length === 0 ? (
-            <p style={{ fontSize: "13px", color: "var(--text-secondary)" }}>Unknown</p>
+            <p style={{ fontSize: "13px", color: "#555555" }}>Unknown</p>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               {claims.links.map((link, idx) => (
@@ -478,28 +399,16 @@ export function ClaimReview({
                     placeholder="https://..."
                     onChange={(e) => handleLinkChange(idx, e.target.value)}
                     disabled={isRunningChecks}
-                    style={{
-                      flex: 1,
-                      minHeight: "44px",
-                      padding: "8px 12px",
-                      borderRadius: "var(--radius-sm)",
-                      border: "1px solid var(--border-divider)",
-                    }}
+                    className="nb-input"
+                    style={{ flex: 1, fontFamily: "var(--font-mono)", fontSize: "13px" }}
                   />
                   <button
                     type="button"
                     onClick={() => handleRemoveLink(idx)}
                     disabled={isRunningChecks}
                     aria-label={`Remove link ${idx + 1}`}
-                    style={{
-                      minHeight: "44px",
-                      padding: "8px 12px",
-                      borderRadius: "var(--radius-sm)",
-                      border: "1px solid var(--border-divider)",
-                      background: "none",
-                      color: "var(--color-danger)",
-                      cursor: "pointer",
-                    }}
+                    className="btn-secondary"
+                    style={{ padding: "8px 12px", minHeight: "44px", color: "#CC0000", flexShrink: 0 }}
                   >
                     Remove
                   </button>
@@ -511,8 +420,8 @@ export function ClaimReview({
 
         {/* Fee Claims Display */}
         {claims.feeClaims.length > 0 && (
-          <div style={{ marginBottom: "20px" }}>
-            <span style={{ display: "block", fontSize: "14px", fontWeight: 500, marginBottom: "8px" }}>
+          <div style={{ marginBottom: "22px" }}>
+            <span style={{ display: "block", fontSize: "14px", fontWeight: 700, marginBottom: "10px" }}>
               Extracted fee statements ({claims.feeClaims.length})
             </span>
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -521,18 +430,23 @@ export function ClaimReview({
                   key={idx}
                   style={{
                     padding: "10px 12px",
-                    borderRadius: "var(--radius-sm)",
                     backgroundColor:
                       claim.kind === "demand"
-                        ? "var(--color-danger-bg)"
+                        ? "#FFE5E5"
                         : claim.kind === "training_offer"
-                        ? "var(--color-caution-bg)"
-                        : "var(--bg-color)",
-                    border: "1px solid var(--border-divider)",
+                        ? "#FFF3E0"
+                        : "#FFFDF5",
+                    border: `3px solid ${
+                      claim.kind === "demand"
+                        ? "var(--color-danger)"
+                        : claim.kind === "training_offer"
+                        ? "var(--color-caution)"
+                        : "#000000"
+                    }`,
                     fontSize: "13px",
                   }}
                 >
-                  <div style={{ fontWeight: 600, marginBottom: "4px" }}>
+                  <div style={{ fontWeight: 700, marginBottom: "4px" }}>
                     Type: {claim.kind.replace("_", " ")}
                   </div>
                   <div style={{ fontStyle: "italic", wordBreak: "break-word" }}>
@@ -552,12 +466,13 @@ export function ClaimReview({
               display: "flex",
               alignItems: "center",
               gap: "8px",
-              backgroundColor: "var(--color-danger-bg)",
-              color: "var(--color-danger)",
+              backgroundColor: "#FFE5E5",
+              color: "#000000",
               padding: "10px 14px",
-              borderRadius: "var(--radius-sm)",
-              marginBottom: "16px",
+              border: "3px solid var(--color-danger)",
+              marginBottom: "18px",
               fontSize: "14px",
+              fontWeight: 600,
             }}
           >
             <AlertCircleIcon size={18} color="var(--color-danger)" />
@@ -566,26 +481,14 @@ export function ClaimReview({
         )}
 
         {/* Action Buttons */}
-        <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", alignItems: "center" }}>
+        <div style={{ display: "flex", gap: "14px", flexWrap: "wrap", alignItems: "center" }}>
           <button
             type="submit"
             id="btn-run-checks"
             disabled={isRunningChecks}
-            style={{
-              minHeight: "44px",
-              padding: "10px 24px",
-              borderRadius: "var(--radius-sm)",
-              backgroundColor: isRunningChecks ? "var(--border-divider)" : "var(--color-action)",
-              color: isRunningChecks ? "var(--text-secondary)" : "#FFFFFF",
-              border: "none",
-              fontWeight: 600,
-              cursor: isRunningChecks ? "not-allowed" : "pointer",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "8px",
-            }}
+            className="btn-primary"
           >
-            {isRunningChecks && <SpinnerIcon size={16} color="#FFFFFF" />}
+            {isRunningChecks && <SpinnerIcon size={16} color="#000000" />}
             <span>{isRunningChecks ? "Running checks..." : "Run checks"}</span>
           </button>
 
@@ -594,16 +497,7 @@ export function ClaimReview({
             id="btn-edit-posting"
             onClick={onEditPosting}
             disabled={isRunningChecks}
-            style={{
-              minHeight: "44px",
-              padding: "10px 20px",
-              borderRadius: "var(--radius-sm)",
-              backgroundColor: "var(--surface-color)",
-              color: "var(--text-main)",
-              border: "1px solid var(--border-divider)",
-              fontWeight: 500,
-              cursor: isRunningChecks ? "not-allowed" : "pointer",
-            }}
+            className="btn-secondary"
           >
             Edit posting
           </button>

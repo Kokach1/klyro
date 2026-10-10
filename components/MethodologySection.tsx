@@ -8,35 +8,30 @@ export function MethodologySection() {
     <section
       id="methodology"
       aria-labelledby="methodology-heading"
-      style={{
-        backgroundColor: "var(--surface-color)",
-        border: "1px solid var(--border-divider)",
-        borderRadius: "var(--radius-card)",
-        padding: "24px 20px",
-        marginBottom: "32px",
-      }}
+      className="nb-card"
+      style={{ marginBottom: "32px" }}
     >
-      <h2 id="methodology-heading" style={{ fontSize: "20px", fontWeight: 700, marginBottom: "16px" }}>
-        About & Methodology
+      <h2 id="methodology-heading" style={{ fontSize: "20px", fontWeight: 800, marginBottom: "16px" }}>
+        About &amp; Methodology
       </h2>
 
-      <p style={{ fontSize: "14px", color: "var(--text-secondary)", lineHeight: "1.6", marginBottom: "16px" }}>
+      <p style={{ fontSize: "14px", color: "#333333", lineHeight: "1.6", marginBottom: "16px", borderLeft: "3px solid #000000", paddingLeft: "10px" }}>
         Job Scam Detector provides a deterministic, evidence-backed evaluation pipeline to detect common
         recruitment fraud patterns. It executes five bounded verification checks concurrently, scoring
         explicit signals rather than using probabilistic AI sentiment.
       </p>
 
-      <h3 style={{ fontSize: "16px", fontWeight: 600, marginTop: "16px", marginBottom: "8px" }}>
+      <h3 style={{ fontSize: "15px", fontWeight: 800, marginTop: "18px", marginBottom: "10px" }}>
         The Five Verification Checks
       </h3>
-      <ul style={{ paddingLeft: "20px", fontSize: "14px", lineHeight: "1.6", display: "flex", flexDirection: "column", gap: "8px", marginBottom: "16px" }}>
+      <ul style={{ paddingLeft: "20px", fontSize: "14px", lineHeight: "1.6", display: "flex", flexDirection: "column", gap: "8px", marginBottom: "18px" }}>
         <li>
           <strong>1. Message red flags:</strong> Scans immutable source text for upfront payment demands,
           mandatory training fees, coercive urgency, and recruiters operating from free webmail providers. Negation phrases
           (such as &ldquo;no registration fee&rdquo;) are strictly preserved and never flagged as scam demands.
         </li>
         <li>
-          <strong>2. Employer domain & age:</strong> Validates the employer&rsquo;s public registrable domain via WHOIS creation date
+          <strong>2. Employer domain &amp; age:</strong> Validates the employer&rsquo;s public registrable domain via WHOIS creation date
           math (evaluating calendar months with month-end and leap-year clamping). Flags domains under 6 months old that contradict claimed corporate longevity.
         </li>
         <li>
@@ -48,18 +43,18 @@ export function MethodologySection() {
           and confirm active legal entity existence in India.
         </li>
         <li>
-          <strong>5. Complaints & reviews:</strong> Bounded search across public web sources for recurring scam complaints. Requires 2+ independent,
+          <strong>5. Complaints &amp; reviews:</strong> Bounded search across public web sources for recurring scam complaints. Requires 2+ independent,
           deduplicated sources to establish a pattern of reported allegations.
         </li>
       </ul>
 
-      <h3 style={{ fontSize: "16px", fontWeight: 600, marginTop: "16px", marginBottom: "8px" }}>
-        Deterministic Scoring & Verdict Gates
+      <h3 style={{ fontSize: "15px", fontWeight: 800, marginTop: "18px", marginBottom: "10px" }}>
+        Deterministic Scoring &amp; Verdict Gates
       </h3>
-      <p style={{ fontSize: "14px", color: "var(--text-secondary)", lineHeight: "1.6", marginBottom: "12px" }}>
+      <p style={{ fontSize: "14px", color: "#333333", lineHeight: "1.6", marginBottom: "12px" }}>
         Points are computed strictly from verified evidence. AI models never choose the label or invent confidence percentages:
       </p>
-      <ul style={{ paddingLeft: "20px", fontSize: "14px", lineHeight: "1.6", display: "flex", flexDirection: "column", gap: "6px", marginBottom: "16px" }}>
+      <ul style={{ paddingLeft: "20px", fontSize: "14px", lineHeight: "1.6", display: "flex", flexDirection: "column", gap: "6px", marginBottom: "18px" }}>
         <li>
           <strong>Harmful-pattern override:</strong> Any directly evidenced candidate payment demand (80 pts) or mandatory paid training tied to a job (80 pts)
           immediately yields <em>Likely Scam</em>, regardless of company registration or external check availability.
@@ -73,16 +68,15 @@ export function MethodologySection() {
         </li>
       </ul>
 
-      <h3 style={{ fontSize: "16px", fontWeight: 600, marginTop: "16px", marginBottom: "8px" }}>
-        Privacy & Data Handling
+      <h3 style={{ fontSize: "15px", fontWeight: 800, marginTop: "18px", marginBottom: "10px" }}>
+        Privacy &amp; Data Handling
       </h3>
-      <p style={{ fontSize: "14px", color: "var(--text-secondary)", lineHeight: "1.6", marginBottom: "16px" }}>
+      <p style={{ fontSize: "14px", color: "#333333", lineHeight: "1.6", marginBottom: "18px" }}>
         This application operates strictly in-memory. Postings, contact information, and URLs are never stored in databases,
         local storage, query parameters, or server logs. Only extracted company names and domains are sent to search and WHOIS providers.
       </p>
 
-      {/* Fixed Disclaimer */}
-      <div style={{ paddingTop: "14px", borderTop: "1px solid var(--border-divider)", fontSize: "13px", color: "var(--text-secondary)", fontStyle: "italic" }}>
+      <div style={{ paddingTop: "14px", borderTop: "3px solid #000000", fontSize: "13px", color: "#444444", fontStyle: "italic" }}>
         <p>{FIXED_DISCLAIMER}</p>
       </div>
     </section>

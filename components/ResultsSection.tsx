@@ -37,17 +37,13 @@ export function ResultsSection({
   const { verdict, coverage, checks, nextSteps, disclaimer, mode, analyzedAt } = result;
 
   // Determine label theme
-  let labelColor = "var(--color-action)";
-  let labelBg = "var(--color-safe-bg)";
+  let labelBg = "#7FBC8C";   // safe
   let LabelIcon = CheckCircleIcon;
-
   if (verdict.label === "Caution") {
-    labelColor = "var(--color-caution)";
-    labelBg = "var(--color-caution-bg)";
+    labelBg = "#FFB347";
     LabelIcon = AlertTriangleIcon;
   } else if (verdict.label === "Likely Scam") {
-    labelColor = "var(--color-danger)";
-    labelBg = "var(--color-danger-bg)";
+    labelBg = "#FF6B6B";
     LabelIcon = AlertCircleIcon;
   }
 
@@ -61,18 +57,16 @@ export function ResultsSection({
       id="results"
       ref={resultsRef}
       aria-labelledby="results-heading"
-      style={{
-        marginBottom: "32px",
-      }}
+      style={{ marginBottom: "32px" }}
     >
       {/* Demo Fixture Persistent Banner */}
       {mode === "demo_fixture" && (
         <div
           role="note"
           style={{
-            backgroundColor: "#FEF3C7",
-            border: "1px solid #D97706",
-            borderRadius: "var(--radius-card)",
+            backgroundColor: "#FFF3CD",
+            border: "3px solid #000000",
+            boxShadow: "4px 4px 0 #000000",
             padding: "12px 16px",
             marginBottom: "20px",
             display: "flex",
@@ -83,12 +77,12 @@ export function ResultsSection({
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <AlertTriangleIcon size={18} color="#92400E" />
-            <span style={{ fontSize: "14px", fontWeight: 600, color: "#92400E" }}>
+            <AlertTriangleIcon size={18} color="#000000" />
+            <span style={{ fontSize: "14px", fontWeight: 700, color: "#000000" }}>
               Demo fixture - recorded evidence, not a live check
             </span>
           </div>
-          <span style={{ fontSize: "12px", color: "#92400E" }}>
+          <span style={{ fontSize: "12px", color: "#333333", fontFamily: "var(--font-mono)" }}>
             Recorded: {new Date(analyzedAt).toLocaleString()}
           </span>
         </div>
@@ -99,9 +93,9 @@ export function ResultsSection({
         <div
           role="alert"
           style={{
-            backgroundColor: "var(--color-danger-bg)",
-            border: "1px solid var(--color-danger)",
-            borderRadius: "var(--radius-card)",
+            backgroundColor: "#FFE5E5",
+            border: "3px solid var(--color-danger)",
+            boxShadow: "4px 4px 0 #000000",
             padding: "12px 16px",
             marginBottom: "20px",
             display: "flex",
@@ -112,8 +106,8 @@ export function ResultsSection({
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <AlertCircleIcon size={18} color="var(--color-danger)" />
-            <span style={{ fontSize: "14px", fontWeight: 600, color: "var(--color-danger)" }}>
+            <AlertCircleIcon size={18} color="#000000" />
+            <span style={{ fontSize: "14px", fontWeight: 700, color: "#000000" }}>
               Stream connection was interrupted. Unfinished checks are marked unavailable.
             </span>
           </div>
@@ -121,16 +115,8 @@ export function ResultsSection({
             <button
               type="button"
               onClick={onRetry}
-              style={{
-                backgroundColor: "var(--color-danger)",
-                color: "#FFFFFF",
-                border: "none",
-                borderRadius: "var(--radius-sm)",
-                padding: "6px 12px",
-                fontSize: "13px",
-                fontWeight: 600,
-                cursor: "pointer",
-              }}
+              className="btn-secondary"
+              style={{ fontSize: "13px", padding: "6px 14px", minHeight: "36px" }}
             >
               Retry checks
             </button>
@@ -143,74 +129,61 @@ export function ResultsSection({
           display: "flex",
           justifyContent: "space-between",
           alignItems: "baseline",
-          marginBottom: "16px",
+          marginBottom: "18px",
         }}
       >
-        <h2 id="results-heading" style={{ fontSize: "22px", fontWeight: 700 }}>
+        <h2 id="results-heading" style={{ fontSize: "24px", fontWeight: 800, letterSpacing: "-0.4px" }}>
           Verification results
         </h2>
         {onNewScan && (
           <button
             type="button"
             onClick={onNewScan}
-            style={{
-              background: "none",
-              border: "none",
-              color: "var(--color-action)",
-              fontSize: "14px",
-              fontWeight: 500,
-              cursor: "pointer",
-              textDecoration: "underline",
-            }}
+            className="btn-primary"
+            style={{ fontSize: "13px", padding: "6px 14px", minHeight: "36px" }}
           >
-            Start a new check
+            New check
           </button>
         )}
       </div>
 
-      {/* 1. Label + Dial + Coverage Grid Card */}
-      <div
-        style={{
-          backgroundColor: "var(--surface-color)",
-          border: "1px solid var(--border-divider)",
-          borderRadius: "var(--radius-card)",
-          padding: "24px",
-          marginBottom: "24px",
-        }}
-      >
+      {/* 1. Verdict Card */}
+      <div className="nb-card" style={{ marginBottom: "24px" }}>
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
             gap: "24px",
             alignItems: "center",
           }}
         >
-          {/* Section 1: Label & Qualifying Sentence */}
+          {/* Label & Summary */}
           <div>
             <div
               style={{
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "8px",
-                padding: "6px 14px",
-                borderRadius: "20px",
+                padding: "6px 16px",
                 backgroundColor: labelBg,
-                color: labelColor,
-                fontSize: "16px",
-                fontWeight: 700,
-                marginBottom: "12px",
+                border: "3px solid #000000",
+                boxShadow: "3px 3px 0 #000000",
+                fontSize: "15px",
+                fontWeight: 800,
+                textTransform: "uppercase",
+                letterSpacing: "0.06em",
+                marginBottom: "14px",
               }}
             >
-              <LabelIcon size={20} color={labelColor} />
+              <LabelIcon size={18} color="#000000" />
               <span>{verdict.label}</span>
             </div>
 
             <p
               style={{
                 fontSize: "17px",
-                fontWeight: 600,
-                color: "var(--text-main)",
+                fontWeight: 700,
+                color: "#000000",
                 lineHeight: "1.4",
                 marginBottom: "12px",
               }}
@@ -218,23 +191,23 @@ export function ResultsSection({
               {verdict.labelExplanation}
             </p>
 
-            <p style={{ fontSize: "14px", color: "var(--text-secondary)", lineHeight: "1.5" }}>
+            <p style={{ fontSize: "14px", color: "#333333", lineHeight: "1.5" }}>
               {verdict.summary}
             </p>
           </div>
 
-          {/* Section 2: Rule-based risk index Dial */}
+          {/* Risk Dial */}
           <div style={{ display: "flex", justifyContent: "center" }}>
             <RiskDial score={verdict.riskIndex} label={verdict.label} />
           </div>
         </div>
 
-        {/* Section 3: Coverage */}
+        {/* Coverage row */}
         <div
           style={{
             marginTop: "20px",
             paddingTop: "16px",
-            borderTop: "1px solid var(--border-divider)",
+            borderTop: "3px solid #000000",
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
@@ -243,18 +216,18 @@ export function ResultsSection({
             fontSize: "14px",
           }}
         >
-          <div>
-            <strong>Coverage: </strong>
-            <span>{coverage.completed} of 5 checks completed</span>
+          <div style={{ fontWeight: 700 }}>
+            Coverage: <span style={{ fontWeight: 400 }}>{coverage.completed} of 5 checks completed</span>
           </div>
 
           <div
             style={{
               display: "flex",
-              gap: "12px",
+              gap: "10px",
               fontSize: "13px",
-              color: "var(--text-secondary)",
+              color: "#555555",
               flexWrap: "wrap",
+              fontFamily: "var(--font-mono)",
             }}
           >
             {coverage.inconclusive > 0 && <span>{coverage.inconclusive} inconclusive</span>}
@@ -264,18 +237,10 @@ export function ResultsSection({
         </div>
       </div>
 
-      {/* Section 4: Main reasons (linked to cards) */}
+      {/* 2. Risk reasons */}
       {allScoredSignals.length > 0 && (
-        <div
-          style={{
-            backgroundColor: "var(--surface-color)",
-            border: "1px solid var(--border-divider)",
-            borderRadius: "var(--radius-card)",
-            padding: "20px",
-            marginBottom: "24px",
-          }}
-        >
-          <h3 style={{ fontSize: "16px", fontWeight: 600, marginBottom: "12px" }}>
+        <div className="nb-card" style={{ marginBottom: "24px" }}>
+          <h3 style={{ fontSize: "16px", fontWeight: 800, marginBottom: "12px" }}>
             Main observed risk reasons
           </h3>
           <ul style={{ paddingLeft: "20px", display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -283,7 +248,7 @@ export function ResultsSection({
               <li key={idx} style={{ fontSize: "14px", lineHeight: "1.4" }}>
                 <span>{signal.explanation} </span>
                 <a href={`#card-${checkId}`} style={{ fontSize: "13px" }}>
-                  (View check evidence)
+                  (View evidence)
                 </a>
               </li>
             ))}
@@ -291,9 +256,9 @@ export function ResultsSection({
         </div>
       )}
 
-      {/* Section 5: Five Check Cards in Fixed Order */}
+      {/* 3. Five Check Cards */}
       <div style={{ marginBottom: "24px" }}>
-        <h3 style={{ fontSize: "18px", fontWeight: 600, marginBottom: "16px" }}>
+        <h3 style={{ fontSize: "18px", fontWeight: 800, marginBottom: "18px" }}>
           Detailed verification checks
         </h3>
         {checks.map((check) => (
@@ -305,17 +270,9 @@ export function ResultsSection({
         ))}
       </div>
 
-      {/* Section 6: Next Steps and Fixed Disclaimer */}
-      <div
-        style={{
-          backgroundColor: "var(--surface-color)",
-          border: "1px solid var(--border-divider)",
-          borderRadius: "var(--radius-card)",
-          padding: "20px",
-          marginBottom: "24px",
-        }}
-      >
-        <h3 style={{ fontSize: "16px", fontWeight: 600, marginBottom: "12px" }}>
+      {/* 4. Next Steps + Disclaimer */}
+      <div className="nb-card" style={{ marginBottom: "24px" }}>
+        <h3 style={{ fontSize: "16px", fontWeight: 800, marginBottom: "12px" }}>
           Recommended next steps
         </h3>
         <ol
@@ -333,13 +290,12 @@ export function ResultsSection({
           ))}
         </ol>
 
-        {/* Fixed Disclaimer verbatim */}
         <div
           style={{
             paddingTop: "14px",
-            borderTop: "1px solid var(--border-divider)",
+            borderTop: "3px solid #000000",
             fontSize: "13px",
-            color: "var(--text-secondary)",
+            color: "#444444",
             fontStyle: "italic",
           }}
         >
