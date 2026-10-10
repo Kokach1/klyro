@@ -5,7 +5,9 @@ import {
   ReasonCode,
 } from "../contracts";
 import { searchGoogleWithSerpApi, SerpApiError } from "../providers/serpapi";
-import { safeFetchUrl, isAlwaysBlockedDomain } from "../safe-fetch";
+import { isAlwaysBlockedDomain } from "../safe-fetch";
+import { fetchCandidatePages, selectCandidatePages } from "./candidate-pages";
+import { buildCompanySearchQuery } from "./search-query";
 
 // Standard 21-character Indian Corporate Identification Number pattern
 const CIN_REGEX = /[UL]\d{5}[A-Z]{2}\d{4}[A-Z]{3}\d{6}/i;
@@ -160,12 +162,11 @@ export async function checkRegistration(
     };
   }
 
-  // One registration SerpAPI query discovers official MCA / company record sources
-  const query = `${company} India CIN MCA company registration`;
+  const query = buildCompanySearchQuery(company, "private limited CIN registration");
 
   let searchResults: Awaited<ReturnType<typeof searchGoogleWithSerpApi>> = [];
   try {
-    searchResults = await searchGoogleWithSerpApi(query, 15000);
+    searchResults = await searchGoogleWithSerpApi(query, 7000);
   } catch (err: any) {
     const reasonCode = (err instanceof SerpApiError ? err.code : "provider_error") as ReasonCode;
     return {
@@ -194,6 +195,33 @@ export async function checkRegistration(
     };
   }
 
+  if (searchResults.length === 0) {
+    return {
+      id: "registration",
+      status: "completed",
+      reasonCode: null,
+      reason: null,
+      finding: `No public company registration or CIN found for "${company}" in sources checked.`,
+      whyItMatters:
+        "Absence of a CIN does not prove fraud; many startups, sole proprietorships, and partnerships operate without a CIN.",
+      checkedAt: now,
+      evidence: [],
+      signals: [],
+      facts: {
+        domain: null,
+        domainOfficialConfirmed: false,
+        domainResponse: null,
+        domainCreatedAt: null,
+        domainAgeDays: null,
+        domainYoung: null,
+        roleMatched: null,
+        legalName: null,
+        cin: null,
+        identityMatch: "none",
+      },
+    };
+  }
+
   const evidenceList: Evidence[] = [];
   let discoveredCin: string | null = null;
   let discoveredLegalName: string | null = null;
@@ -204,10 +232,7 @@ export async function checkRegistration(
     (a, b) => getRegistryPriority(a.link) - getRegistryPriority(b.link)
   );
 
-  let pagesRead = 0;
   for (const item of prioritizedResults) {
-    const isMca = item.link.toLowerCase().includes("mca.gov.in");
-    const isBlocked = isAlwaysBlockedDomain(item.link);
     const combinedSnippetText = `${item.title} ${item.snippet || ""}`;
 
     // Extract CIN from snippet or title
@@ -232,7 +257,6 @@ export async function checkRegistration(
         classification: "corroboration",
       });
 
-      // Valid corroboration found via snippet; no need to waste further page fetches
       break;
     }
 
@@ -252,24 +276,33 @@ export async function checkRegistration(
     if (!discoveredCin && snippetCin) {
       discoveredCin = snippetCin;
     }
+  }
 
-    // Skip domains that always block servers, and skip MCA because MCA blocks direct server fetch
-    if (isBlocked || isMca) {
-      continue;
-    }
+  if (identityMatch === "high" && discoveredCin) {
+    return {
+      id: "registration", status: "completed", reasonCode: null, reason: null,
+      finding: `Found matching registered entity: ${discoveredLegalName || company} (CIN: ${discoveredCin}).`,
+      whyItMatters: "Corroborating a registered corporate entity verifies that a legal company exists in registry records.",
+      checkedAt: now, evidence: evidenceList, signals: [],
+      facts: { domain: null, domainOfficialConfirmed: false, domainResponse: null, domainCreatedAt: null, domainAgeDays: null, domainYoung: null, roleMatched: null, legalName: discoveredLegalName || company, cin: discoveredCin, identityMatch: "high" },
+    };
+  }
 
-    if (pagesRead >= 2) continue;
+  const candidates = selectCandidatePages(prioritizedResults, (url) => url.toLowerCase().includes("mca.gov.in"));
+  if (candidates.length === 0) {
+    return {
+      id: "registration", status: "inconclusive", reasonCode: "blocked_page",
+      reason: "No registry candidate pages passed the domain filter.",
+      finding: `Registry search returned no fetchable sources for "${company}".`,
+      whyItMatters: "A search result without accessible registry evidence cannot confirm a legal entity.",
+      checkedAt: now, evidence: evidenceList, signals: [],
+      facts: { domain: null, domainOfficialConfirmed: false, domainResponse: null, domainCreatedAt: null, domainAgeDays: null, domainYoung: null, roleMatched: null, legalName: null, cin: discoveredCin, identityMatch: "ambiguous" },
+    };
+  }
 
-    // Try reading page to corroborate legal entity name and CIN for reachable registry sites
-    try {
-      const page = await safeFetchUrl(item.link, {
-        timeoutMs: 8000,
-        maxBytes: 1024 * 512,
-        maxRedirects: 3,
-        maxTextChars: 8000,
-      });
-      pagesRead++;
-
+  const fetchedCandidates = await fetchCandidatePages(candidates);
+  for (const { item, page } of fetchedCandidates) {
+    if (page) {
       const cinMatch = CIN_REGEX.exec(page.text);
       if (cinMatch) {
         discoveredCin = cinMatch[0].toUpperCase();
@@ -280,7 +313,7 @@ export async function checkRegistration(
         identityMatch = "high";
 
         evidenceList.push({
-          id: `ev-reg-page-${pagesRead}`,
+          id: `ev-reg-page-${evidenceList.length + 1}`,
           kind: "registry",
           title: item.title,
           url: item.link,
@@ -290,10 +323,7 @@ export async function checkRegistration(
           retrievedAt: now,
           classification: "corroboration",
         });
-        break;
       }
-    } catch {
-      // Ignore page fetch errors; snippets remain recorded
     }
   }
 
@@ -320,33 +350,6 @@ export async function checkRegistration(
         legalName: discoveredLegalName || company,
         cin: discoveredCin,
         identityMatch: "high",
-      },
-    };
-  }
-
-  if (searchResults.length === 0) {
-    return {
-      id: "registration",
-      status: "completed",
-      reasonCode: null,
-      reason: null,
-      finding: `No public company registration or CIN found for "${company}" in sources checked.`,
-      whyItMatters:
-        "Absence of a CIN does not prove fraud; many startups, sole proprietorships, and partnerships operate without a CIN.",
-      checkedAt: now,
-      evidence: [],
-      signals: [], // Never emit scam signal merely because CIN was not found
-      facts: {
-        domain: null,
-        domainOfficialConfirmed: false,
-        domainResponse: null,
-        domainCreatedAt: null,
-        domainAgeDays: null,
-        domainYoung: null,
-        roleMatched: null,
-        legalName: null,
-        cin: null,
-        identityMatch: "none",
       },
     };
   }

@@ -243,6 +243,17 @@ export const ALWAYS_BLOCKED_SCRAPE_DOMAINS = [
 
 export function isAlwaysBlockedDomain(urlOrDomain: string): boolean {
   const lower = urlOrDomain.toLowerCase();
+  try {
+    const rawUrl = /^https?:\/\//i.test(urlOrDomain) ? urlOrDomain : `https://${urlOrDomain}`;
+    const parsed = new URL(rawUrl);
+    const isInfoparkJobs =
+      (parsed.hostname === "infopark.in" || parsed.hostname.endsWith(".infopark.in")) &&
+      parsed.pathname.startsWith("/jobs");
+    // Infopark's Kerala job pages are ordinary public HTML pages and remain eligible.
+    if (isInfoparkJobs) return false;
+  } catch {
+    // Fall through to the known blocked-domain check for malformed URLs.
+  }
   return ALWAYS_BLOCKED_SCRAPE_DOMAINS.some((blocked) => lower.includes(blocked));
 }
 

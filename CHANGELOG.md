@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+### 2026-10-11T03:14:06+05:30 — Quote company searches and fetch candidate pages concurrently
+
+- Changed: Added shared search-query and candidate-page helpers; updated careers, registration, and complaints checks to build their SerpAPI query from the extracted company name in double quotes, allow 7 seconds for SerpAPI, select at most three non-blocked candidates, and fetch those pages concurrently with an 8-second limit. Explicitly kept `infopark.in/jobs` eligible for fetching.
+- Why: Improve result relevance, avoid serial request timeouts, and return an honest inconclusive result when search leads do not provide a fetchable candidate.
+- Validation: `npm run typecheck` passed, `npm run test` passed (48 tests), and `npm run build` passed.
+- Limitations: Server-blocked or JavaScript-only sources remain inconclusive; search snippets alone do not establish a complaint pattern.
+
 ### 2026-10-11T03:00:00+05:30 — Smarter careers search, ATS prioritization, and snippet-corroborated registry check
 
 - Changed:

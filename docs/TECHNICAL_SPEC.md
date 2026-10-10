@@ -41,7 +41,7 @@ Extraction provider chain:
 Provider adapters:
 - Gemini: POST `https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent` with JSON `responseSchema` constrained to `ExtractedClaims`. Detect 429 / RESOURCE_EXHAUSTED and rotate keys.
 - OpenAI: server SDK Responses / Chat Completions API with schema-constrained structured output for fallback extraction and summaries.
-- SerpAPI: GET `https://serpapi.com/search` with URLSearchParams `engine=google`, `q`, `api_key`, `output=json`, `gl=in`, `hl=en`. Parse `organic_results` defensively; use title/link/snippet as discovery leads, not automatically verified facts. Validate errors even on HTTP 200. Never expose a credential-bearing search URL. Queries use company, role, location and public domain only, not personal phones or recruiter email.
+- SerpAPI: GET `https://serpapi.com/search` with URLSearchParams `engine=google`, `q`, `api_key`, `output=json`, `gl=in`, `hl=en`. Parse `organic_results` defensively; use title/link/snippet as discovery leads, not automatically verified facts. Validate errors even on HTTP 200. Never expose a credential-bearing search URL. Build every query from the extracted company name wrapped in double quotes; do not include personal phones or recruiter email.
 - WhoisXML: POST `https://www.whoisxmlapi.com/whoisserver/WhoisService` with JSON `apiKey`, `domainName`, `outputFormat: "JSON"`. Parse the `WhoisRecord` wrapper and `registryData` fallback. Inspect provider errors as well as HTTP status. Use creation date, not audit/updated/expiry dates, to calculate age. Treat privacy masking separately from a missing date.
 - OpenCorporates: optional adapter only after access and licensing are confirmed. Search fallback remains the default without a key; it does not require a fourth search call.
 
@@ -49,7 +49,7 @@ Provider adapters:
 These are explicit implementation defaults for the MVP, not provider guarantees:
 - Raw text: 20,000 Unicode characters. URL: 2,048 characters. Reviewed string fields: at most 500 characters each; contacts/links: at most 10 each.
 - URL extraction: 8-second fetch limit, 1 MiB decompressed-body limit, at most 3 redirects. Accept text/HTML only; offer pasted text for PDFs, login walls or unreadable pages.
-- Fetch at most 2 relevant pages per search check, 6 total. Limit each sanitized page excerpt to 8,000 characters. Retain exact evidence quotes with offsets in the bounded excerpt.
+- Give each SerpAPI lookup a 7-second budget, then select at most 3 candidate pages per search check after the domain filter and fetch them concurrently with an 8-second limit per page. Return inconclusive immediately when no candidate survives filtering. Limit each sanitized page excerpt to 8,000 characters. Retain exact evidence quotes with offsets in the bounded excerpt.
 - Extraction/model request timeout: 15 seconds. Each verification check: 15 seconds total, including its provider call and bounded page reads. Summarization: 10 seconds. Entire verify request: 40 seconds with cancellation and partial results before the deadline. Configure a 60-second route budget only if the actual Vercel account supports it; verify this at deployment. Reduce internal budgets if it does not.
 - Run independent checks concurrently. Reuse domain candidates from careers discovery; if that dependency consumes the domain budget, report timeout rather than extending indefinitely. Use abort signals and `Promise.allSettled` or equivalent bounded orchestration.
 - No automatic retries in the initial build. One user-triggered retry starts a new request and consumes quota.
@@ -176,10 +176,10 @@ Use neutral null/false defaults for irrelevant fact fields. `false` for `domainO
 Errors before verification begins use `{ error: { code: string, message: string, retryable: boolean } }`. Use 400 for validation, 413 for size, 429 for rate limiting, 422 for unreadable URL/extraction failure, and 503 for extraction service unavailable. Missing keys for verification checks yield HTTP 200 partial results, not total failure. If summarization fails, retain the deterministic verdict and rule-based summary.
 
 ## Queries and evidence handling
-Construct queries with escaped user-reviewed terms; do not let input inject provider parameters:
-- Careers: company + role + location + careers/jobs; use known employer domain in `site:` where corroborated.
-- Registration: company + India + CIN/MCA/registration. Prefer official records and do not imply every business requires a CIN.
-- Complaints: company + (scam OR complaint OR review).
+Construct queries from the extracted company name only; do not let input inject provider parameters:
+- Careers: `"<company>" careers`.
+- Registration: `"<company>" private limited CIN registration`. Prefer official records and do not imply every business requires a CIN.
+- Complaints: `"<company>" scam OR complaint OR review`.
 
 Read selected result pages before reporting verified facts. Preserve relevant quotes from those pages. If pages are blocked, label snippets as snippets and use inconclusive/unavailable rather than claiming verification. Deduplicate URLs and copied allegation narratives; repeated snippets are not independent reports. Do not return a provider's credential-bearing `serpapi_link` as evidence.
 

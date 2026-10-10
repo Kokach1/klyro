@@ -6,7 +6,8 @@ import {
   Signal,
 } from "../contracts";
 import { searchGoogleWithSerpApi, SerpApiError } from "../providers/serpapi";
-import { safeFetchUrl } from "../safe-fetch";
+import { fetchCandidatePages, selectCandidatePages } from "./candidate-pages";
+import { buildCompanySearchQuery } from "./search-query";
 
 const COMPLAINT_KEYWORDS = [
   "scam",
@@ -58,12 +59,11 @@ export async function checkComplaints(
     };
   }
 
-  // Construct query: company + (scam OR complaint OR review)
-  const query = `${company} (scam OR complaint OR review)`;
+  const query = buildCompanySearchQuery(company, "scam OR complaint OR review");
 
   let searchResults: Awaited<ReturnType<typeof searchGoogleWithSerpApi>> = [];
   try {
-    searchResults = await searchGoogleWithSerpApi(query, 15000);
+    searchResults = await searchGoogleWithSerpApi(query, 7000);
   } catch (err: any) {
     const reasonCode = (err instanceof SerpApiError ? err.code : "provider_error") as ReasonCode;
     return {
@@ -130,20 +130,29 @@ export async function checkComplaints(
     };
   }
 
-  // Read at most 2 relevant pages to inspect allegation specifics and deduplicate
+  const candidates = selectCandidatePages(relevantResults);
+  if (candidates.length === 0) {
+    return {
+      id: "complaints", status: "inconclusive", reasonCode: "blocked_page",
+      reason: "No complaint candidate pages passed the domain filter.",
+      finding: "Search found mentions, but none could be checked on a fetchable source.",
+      whyItMatters: "Search snippets alone cannot establish a complaint pattern.",
+      checkedAt: now, evidence: [], signals: [],
+      facts: { domain: null, domainOfficialConfirmed: false, domainResponse: null, domainCreatedAt: null, domainAgeDays: null, domainYoung: null, roleMatched: null, legalName: null, cin: null, identityMatch: "ambiguous" },
+    };
+  }
+
+  const fetchedCandidates = await fetchCandidatePages(candidates);
   const independentSources = new Map<string, string>(); // domain -> quote
-  let pagesRead = 0;
 
-  for (const item of relevantResults) {
-    if (pagesRead >= 2) break;
-
+  for (const { item, page } of fetchedCandidates) {
     let itemDomain = "search_result";
     try {
       itemDomain = new URL(item.link).hostname;
     } catch {}
 
     evidenceList.push({
-      id: `ev-comp-snip-${pagesRead + 1}`,
+      id: `ev-comp-snip-${evidenceList.length + 1}`,
       kind: "search_snippet",
       title: item.title,
       url: item.link,
@@ -154,22 +163,14 @@ export async function checkComplaints(
       classification: "allegation",
     });
 
-    try {
-      const page = await safeFetchUrl(item.link, {
-        timeoutMs: 8000,
-        maxBytes: 1024 * 512,
-        maxRedirects: 3,
-        maxTextChars: 8000,
-      });
-      pagesRead++;
-
+    if (page) {
       const pageLower = page.text.toLowerCase();
       const mentionsRecruitingScam = COMPLAINT_KEYWORDS.some((kw) => pageLower.includes(kw));
 
       if (mentionsRecruitingScam && !independentSources.has(itemDomain)) {
         independentSources.set(itemDomain, page.text.slice(0, 250));
         evidenceList.push({
-          id: `ev-comp-page-${pagesRead}`,
+          id: `ev-comp-page-${evidenceList.length + 1}`,
           kind: "page",
           title: item.title,
           url: item.link,
@@ -179,11 +180,6 @@ export async function checkComplaints(
           retrievedAt: now,
           classification: "allegation",
         });
-      }
-    } catch {
-      // Snippet remains recorded
-      if (!independentSources.has(itemDomain) && item.snippet) {
-        independentSources.set(itemDomain, item.snippet);
       }
     }
   }

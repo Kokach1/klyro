@@ -6,7 +6,9 @@ import {
   Signal,
 } from "../contracts";
 import { searchGoogleWithSerpApi, SerpApiError } from "../providers/serpapi";
-import { safeFetchUrl, isAlwaysBlockedDomain } from "../safe-fetch";
+import { isAlwaysBlockedDomain } from "../safe-fetch";
+import { fetchCandidatePages, selectCandidatePages } from "./candidate-pages";
+import { buildCompanySearchQuery } from "./search-query";
 
 // Employer-linked ATS portals per specification
 export const EMPLOYER_ATS_DOMAINS = [
@@ -19,6 +21,7 @@ export const EMPLOYER_ATS_DOMAINS = [
   "smartrecruiters.com",
   "bamboohr.com",
   "jobvite.com",
+  "infopark.in",
 ];
 
 /**
@@ -64,16 +67,15 @@ export async function checkCareersMatch(
   const now = analysisDate.toISOString();
   const company = claims.companyName?.trim() || "";
   const role = claims.role?.trim() || "";
-  const location = claims.location?.trim() || "";
   const domain = claims.employerDomain?.trim() || null;
 
-  if (!company && !role) {
+  if (!company) {
     return {
       id: "careers_match",
       status: "inconclusive",
       reasonCode: "missing_data",
-      reason: "Missing company name and role to search careers portal.",
-      finding: "Cannot search official careers portal without company name or role.",
+      reason: "No company name was extracted to search careers sources.",
+      finding: "Cannot search official careers sources without a company name.",
       whyItMatters:
         "Matching a job post to the official careers site confirms genuine hiring authority.",
       checkedAt: now,
@@ -98,20 +100,11 @@ export async function checkCareersMatch(
     ? domain.replace(/^https?:\/\//i, "").replace(/\/.*$/, "").trim().toLowerCase()
     : null;
 
-  // Careers query focused on employer official site rather than keyword soup:
-  // '<company name> careers' or '<company name> jobs official site'
-  // If employer domain is known, add site:thatdomain.com
-  let query = "";
-  if (cleanDomain) {
-    const base = company ? `${company} careers` : `${role || "company"} careers`;
-    query = `${base} site:${cleanDomain}`;
-  } else {
-    query = company ? `${company} jobs official site` : `${role} jobs official site`;
-  }
+  const query = buildCompanySearchQuery(company, "careers");
 
   let searchResults: Awaited<ReturnType<typeof searchGoogleWithSerpApi>> = [];
   try {
-    searchResults = await searchGoogleWithSerpApi(query, 15000);
+    searchResults = await searchGoogleWithSerpApi(query, 7000);
   } catch (err: any) {
     const reasonCode = (err instanceof SerpApiError ? err.code : "provider_error") as ReasonCode;
     return {
@@ -184,12 +177,28 @@ export async function checkCareersMatch(
       getCareersPagePriority(b.link, cleanDomain)
   );
 
-  // Bounded reading: read at most 2 relevant candidate pages
-  let pagesRead = 0;
+  const candidates = selectCandidatePages(prioritizedResults);
+  if (candidates.length === 0) {
+    return {
+      id: "careers_match",
+      status: "inconclusive",
+      reasonCode: "blocked_page",
+      reason: "No candidate careers pages passed the domain filter.",
+      finding: "Search results did not include a fetchable careers page.",
+      whyItMatters: "Only fetchable employer and careers sources can corroborate an active vacancy.",
+      checkedAt: now,
+      evidence: [],
+      signals: [],
+      facts: { domain, domainOfficialConfirmed: false, domainResponse: null, domainCreatedAt: null, domainAgeDays: null, domainYoung: null, roleMatched: null, legalName: null, cin: null, identityMatch: "ambiguous" },
+    };
+  }
+
+  const fetchedCandidates = await fetchCandidatePages(candidates);
+  const pagesRead = fetchedCandidates.filter((candidate) => candidate.page !== null).length;
   let matchingPageFound = false;
   let confirmedDomain = false;
 
-  for (const item of prioritizedResults) {
+  for (const { item, page } of fetchedCandidates) {
     // Record search snippet lead
     evidenceList.push({
       id: `ev-car-snip-${evidenceList.length + 1}`,
@@ -203,24 +212,8 @@ export async function checkCareersMatch(
       classification: "unknown",
     });
 
-    // Skip domains that always block servers: fetching them wastes the bounded attempt
-    if (isAlwaysBlockedDomain(item.link)) {
-      continue;
-    }
-
-    if (pagesRead >= 2) break;
-
-    // Try reading candidate page safely
-    try {
-      const pageResult = await safeFetchUrl(item.link, {
-        timeoutMs: 8000,
-        maxBytes: 1024 * 512,
-        maxRedirects: 3,
-        maxTextChars: 8000,
-      });
-      pagesRead++;
-
-      const pageTextLower = pageResult.text.toLowerCase();
+    if (page) {
+      const pageTextLower = page.text.toLowerCase();
       const titleLower = item.title.toLowerCase();
       const roleLower = role.toLowerCase();
       const companyLower = company.toLowerCase();
@@ -239,20 +232,17 @@ export async function checkCareersMatch(
         }
 
         evidenceList.push({
-          id: `ev-car-page-${pagesRead}`,
+          id: `ev-car-page-${evidenceList.length + 1}`,
           kind: "page",
           title: item.title,
           url: item.link,
-          quote: pageResult.text.slice(0, 300),
+          quote: page.text.slice(0, 300),
           provider: "web_read",
           publishedAt: null,
           retrievedAt: now,
           classification: "corroboration",
         });
-        break;
       }
-    } catch {
-      // Page read failed or blocked; snippet lead remains recorded
     }
   }
 

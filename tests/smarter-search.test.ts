@@ -1,6 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
 import { isAlwaysBlockedDomain } from "../lib/safe-fetch";
 import { getCareersPagePriority, checkCareersMatch } from "../lib/checks/careers-match";
+import { checkComplaints } from "../lib/checks/complaints";
+import { selectCandidatePages } from "../lib/checks/candidate-pages";
 import {
   getRegistryPriority,
   matchesLegalName,
@@ -28,6 +30,7 @@ describe("Smarter Careers and Registry Search", () => {
       expect(isAlwaysBlockedDomain("https://boards.greenhouse.io/airbnb")).toBe(false);
       expect(isAlwaysBlockedDomain("https://stripe.myworkdayjobs.com/stripe")).toBe(false);
       expect(isAlwaysBlockedDomain("https://acme.keka.com/careers")).toBe(false);
+      expect(isAlwaysBlockedDomain("https://infopark.in/jobs/company/role")).toBe(false);
     });
   });
 
@@ -172,10 +175,12 @@ describe("Smarter Careers and Registry Search", () => {
   });
 
   describe("Careers Query Construction", () => {
-    it("constructs employer-focused careers query with site: when domain is known", async () => {
+    it("constructs quoted, company-derived queries for every SerpAPI check", async () => {
       let queryRun = "";
-      const searchSpy = vi.spyOn(serpapi, "searchGoogleWithSerpApi").mockImplementation(async (q) => {
+      let timeoutRun = 0;
+      const searchSpy = vi.spyOn(serpapi, "searchGoogleWithSerpApi").mockImplementation(async (q, timeout) => {
         queryRun = q;
+        timeoutRun = timeout ?? 0;
         return [];
       });
 
@@ -192,7 +197,8 @@ describe("Smarter Careers and Registry Search", () => {
       };
 
       await checkCareersMatch(claimsWithDomain);
-      expect(queryRun).toBe("Google careers site:google.com");
+      expect(queryRun).toBe('"Google" careers');
+      expect(timeoutRun).toBe(7000);
 
       const claimsWithoutDomain: ExtractedClaims = {
         companyName: "Google",
@@ -207,8 +213,58 @@ describe("Smarter Careers and Registry Search", () => {
       };
 
       await checkCareersMatch(claimsWithoutDomain);
-      expect(queryRun).toBe("Google jobs official site");
+      expect(queryRun).toBe('"Google" careers');
 
+      await checkRegistration({ ...claimsWithDomain, location: "Bengaluru, India" });
+      expect(queryRun).toBe('"Google" private limited CIN registration');
+      expect(timeoutRun).toBe(7000);
+
+      await checkComplaints(claimsWithDomain);
+      expect(queryRun).toBe('"Google" scam OR complaint OR review');
+      expect(timeoutRun).toBe(7000);
+
+      searchSpy.mockRestore();
+    });
+
+    it("keeps at most three fetchable candidates and retains Infopark jobs", () => {
+      const candidates = selectCandidatePages([
+        { title: "Blocked", link: "https://www.linkedin.com/jobs/1" },
+        { title: "Infopark", link: "https://infopark.in/jobs/1" },
+        { title: "One", link: "https://example.com/1" },
+        { title: "Two", link: "https://example.org/2" },
+        { title: "Three", link: "https://example.net/3" },
+      ]);
+
+      expect(candidates.map((candidate) => candidate.link)).toEqual([
+        "https://infopark.in/jobs/1",
+        "https://example.com/1",
+        "https://example.org/2",
+      ]);
+    });
+
+    it("returns inconclusive when every careers lead is filtered out", async () => {
+      const searchSpy = vi.spyOn(serpapi, "searchGoogleWithSerpApi").mockResolvedValueOnce([
+        {
+          title: "Google jobs on LinkedIn",
+          link: "https://www.linkedin.com/jobs/view/123",
+          snippet: "Google is hiring Software Engineers.",
+        },
+      ]);
+
+      const result = await checkCareersMatch({
+        companyName: "Google",
+        role: "Software Engineer",
+        salary: null,
+        location: "Bengaluru, India",
+        contacts: [],
+        links: [],
+        employerDomain: "google.com",
+        claimedOperatingYears: null,
+        feeClaims: [],
+      });
+
+      expect(result.status).toBe("inconclusive");
+      expect(result.reasonCode).toBe("blocked_page");
       searchSpy.mockRestore();
     });
   });

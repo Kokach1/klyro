@@ -56,7 +56,7 @@ Structured claim extraction uses a robust multi-provider fallback chain:
 
 3. **Official careers-page match (`careers_match`)**
    - Discovers and reads employer careers portals via SerpAPI search.
-   - Fetches and reads candidate vacancy pages (up to 2 pages).
+   - Fetches up to 3 eligible candidate vacancy pages in parallel, with an 8-second limit per page.
    - Validates that the role and employer match the official portal.
    - Emits `careers_not_found` when a thorough lookup finds no active matching vacancy.
 
