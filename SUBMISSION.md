@@ -5,7 +5,7 @@
 - **Project name:** Klyro — Job Scam Detector
 - **Short description:** An evidence-backed job scam detection application that protects job seekers from fake recruitment offers, upfront fee demands, newly registered domains, uncorroborated vacancies, and scam allegations through deterministic verification rules.
 - **Code repository URL:** https://github.com/Kokach1/klyro
-- **Final submitted implementation commit SHA:** Pending final push commit
+- **Final submitted implementation commit SHA:** 92444cf
 - **Working demo URL or local demo steps:** Clone repo, run `npm install`, `npm run build`, and `npm run start`. Visit `http://localhost:3000`. Test live postings or load the 4 pre-recorded demo fixtures directly from the header.
 - **Demo access requirements:** None for demo fixtures. Live scans require valid server environment variables in `.env.local` (`OPENAI_API_KEY`, `SERPAPI_API_KEY`, `WHOISXML_API_KEY`).
 
