@@ -4,6 +4,26 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+### 2026-10-11T04:38:00+05:30 — Fix Gemini key rotation and partial scoring with mandatory coverage and locked Safe label
+
+- Changed:
+  - `lib/env.ts`: Combined comma-separated keys from both `GEMINI_API_KEYS` and `GEMINI_API_KEY` into a deduplicated key array; set default `GEMINI_MODEL` to `gemini-3.8-flash`.
+  - `lib/providers/gemini.ts`: Set primary model to `gemini-3.8-flash` (with fallbacks `gemini-2.5-flash`, `gemini-flash-latest`) to avoid 404s on retired models; structured clean quota/auth/network error throwing.
+  - `lib/providers/extraction-chain.ts`: Added explicit `continue;` in the Gemini key loop to ensure any failure on key #1 (429, invalid key, network) proceeds to key #2, #3, etc., without aborting, and recorded warnings when rotated keys succeed.
+  - `lib/rules.ts`:
+    - Enforced that Safe label stays locked unless ALL applicable checks complete cleanly (`coverage.completed === coverage.total && !anyInconclusive && !anyUnavailable`).
+    - With partial coverage, verdict defaults to Caution with explicit explanation: `"Caution (based on X of 5 checks): Safe label is locked until all checks complete."`
+    - Missing/unavailable checks contribute 0 points and stay neutral (never reduce or artificially increase score).
+    - Rule summaries reflect partial coverage explicitly.
+  - `app/api/verify/route.ts` & `app/page.tsx`: Filtered checks to `c.status === "completed"` before gathering signals and computing risk index so partial checks score strictly over completed evidence.
+  - `components/RiskDial.tsx` & `components/ResultsSection.tsx`: Added `coverage` prop to `RiskDial` displaying `"{completed} of 5 checks completed"` prominently right under the Risk Index; added `based on X of 5 checks` badge beside the verdict header on partial coverage.
+  - `tests/extraction-chain.test.ts`: Added unit test verifying `GEMINI_API_KEYS="deadkey,realkey"` rotates past `deadkey` and succeeds via `realkey`.
+  - `tests/rules.test.ts`: Added unit tests verifying partial scoring over completed checks only (3 of 5 completed), neutral contribution of missing checks, locked Safe label under partial coverage, and unlocked Safe label on 5 of 5 clean completion.
+- Why: Fix premature loop termination during Gemini key rotation (preventing failures when dead or rate-limited keys precede active keys) and ensure honest partial scoring that never misleads users with an unqualified Safe label or missing coverage context.
+- Validation: Verified live rotation over real network from `deadkey` to working key (`AQ...`); all 62 Vitest tests passed (`npm test`); Next.js production build (`npm run build`) succeeded with 0 errors.
+- Limitations: If all configured Gemini keys and OpenAI fallbacks are exhausted, returns honest 503 service unavailable with zero fabricated scores.
+
+
 ### 2026-10-11T04:12:00+05:30 — Route page reads through Jina Reader with employer vs aggregator tiers
 
 - Changed:

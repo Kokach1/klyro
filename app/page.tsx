@@ -202,8 +202,9 @@ export default function Home() {
           };
         });
 
-        // Recompute local deterministic rules for interrupted stream
-        const rawSignals = finalChecks.flatMap((c) => c.signals);
+        // Recompute local deterministic rules for interrupted stream: score from completed checks only
+        const completedChecks = finalChecks.filter((c) => c.status === "completed");
+        const rawSignals = completedChecks.flatMap((c) => c.signals);
         const { acceptedSignals, totalPoints } = deduplicateAndScoreSignals(rawSignals);
         const coverage = calculateCoverage(finalChecks);
         const verdictBase = evaluateVerdict(finalChecks, acceptedSignals, totalPoints);

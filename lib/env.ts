@@ -31,19 +31,18 @@ function extractApiKeyFromPossibleUrl(keyRaw?: string): string | undefined {
 }
 
 export function getServerEnv(): AppEnv {
-  const geminiKeysRaw =
-    process.env.GEMINI_API_KEYS?.trim() ||
-    process.env.GEMINI_API_KEY?.trim() ||
-    "";
+  const rawKeyParts = [
+    ...(process.env.GEMINI_API_KEYS?.split(",") || []),
+    ...(process.env.GEMINI_API_KEY?.split(",") || []),
+  ];
 
-  const geminiKeys = geminiKeysRaw
-    .split(",")
-    .map((k) => k.trim())
-    .filter((k) => k.length > 0);
+  const geminiKeys = Array.from(
+    new Set(rawKeyParts.map((k) => k.trim()).filter((k) => k.length > 0))
+  );
 
   return {
     GEMINI_API_KEYS: geminiKeys,
-    GEMINI_MODEL: process.env.GEMINI_MODEL?.trim() || undefined,
+    GEMINI_MODEL: process.env.GEMINI_MODEL?.trim() || "gemini-3.8-flash",
     OPENAI_API_KEY: process.env.OPENAI_API_KEY?.trim() || undefined,
     // Accept SERPAPI_API_KEY as primary, SERPAPI_KEY as fallback per spec
     SERPAPI_API_KEY: (

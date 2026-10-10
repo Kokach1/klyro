@@ -124,4 +124,31 @@ describe("Extraction Provider Chain (Gemini x N -> OpenAI -> Unavailable)", () =
       extractClaimsWithProviderChain("Sample posting text")
     ).rejects.toThrow(ExtractionChainError);
   });
+
+  it("rotates from deadkey to realkey and succeeds via the second key (GEMINI_API_KEYS=deadkey,realkey)", async () => {
+    vi.spyOn(envModule, "getServerEnv").mockReturnValue({
+      GEMINI_API_KEYS: ["deadkey", "realkey"],
+      OPENAI_API_KEY: undefined,
+    });
+
+    const geminiSpy = vi.spyOn(geminiProvider, "extractClaimsWithGeminiKey")
+      .mockImplementation(async (key: string) => {
+        if (key === "deadkey") {
+          throw new geminiProvider.GeminiError("API key not valid (HTTP 400)", "auth");
+        }
+        if (key === "realkey") {
+          return {
+            extracted: dummyClaims,
+            warnings: [],
+          };
+        }
+        throw new Error("Unexpected key");
+      });
+
+    const result = await extractClaimsWithProviderChain("Sample posting text");
+    expect(geminiSpy).toHaveBeenCalledTimes(2);
+    expect(result.providerUsed).toBe("gemini");
+    expect(result.extracted.companyName).toBe("Acme Innovations");
+    expect(result.warnings.some((w) => w.includes("rotated key #2"))).toBe(true);
+  });
 });

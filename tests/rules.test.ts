@@ -113,7 +113,7 @@ describe("lib/rules: Deterministic Scoring & Gates", () => {
     expect(verdict.labelExplanation).toBe(LABEL_EXPLANATIONS["Safe"]);
   });
 
-  it("defaults to Caution when any check is inconclusive or unavailable, even with 0 points", () => {
+  it("defaults to Caution with coverage explanation when any check is inconclusive or unavailable, even with 0 points", () => {
     const checks: CheckResult[] = [
       createCompletedCheck("message_flags"),
       createCompletedCheck("domain_age"),
@@ -130,7 +130,97 @@ describe("lib/rules: Deterministic Scoring & Gates", () => {
     expect(verdict.label).toBe("Caution");
     expect(verdict.ruleId).toBe("caution_default");
     expect(verdict.riskIndex).toBe(0);
-    expect(verdict.labelExplanation).toBe(LABEL_EXPLANATIONS["Caution"]);
+    expect(verdict.labelExplanation).toContain("based on 4 of 5 checks");
+    expect(verdict.labelExplanation).toContain("Safe label is locked");
+  });
+
+  it("scores from completed checks only when 3 of 5 checks completed (missing checks stay neutral / 0 points)", () => {
+    const checks: CheckResult[] = [
+      {
+        ...createCompletedCheck("message_flags"),
+        status: "completed",
+        signals: [
+          { code: "urgency", points: 10, evidenceIds: ["ev-1"], explanation: "Urgent" },
+          { code: "free_email_hr", points: 10, evidenceIds: ["ev-2"], explanation: "Gmail" },
+        ],
+      },
+      {
+        ...createCompletedCheck("domain_age"),
+        status: "completed",
+        signals: [
+          { code: "young_domain_history", points: 15, evidenceIds: ["ev-3"], explanation: "Young domain" },
+        ],
+      },
+      {
+        ...createCompletedCheck("careers_match"),
+        status: "completed",
+        signals: [],
+      },
+      {
+        ...createCompletedCheck("registration"),
+        status: "unavailable",
+        reasonCode: "missing_key",
+        signals: [],
+      },
+      {
+        ...createCompletedCheck("complaints"),
+        status: "unavailable",
+        reasonCode: "timeout",
+        signals: [],
+      },
+    ];
+
+    // Score from completed checks only
+    const completedChecks = checks.filter((c) => c.status === "completed");
+    expect(completedChecks.length).toBe(3);
+
+    const rawSignals = completedChecks.flatMap((c) => c.signals);
+    const { acceptedSignals, totalPoints } = deduplicateAndScoreSignals(rawSignals);
+    const coverage = calculateCoverage(checks);
+
+    expect(coverage.completed).toBe(3);
+    expect(coverage.total).toBe(5);
+    // 10 + 10 + 15 = 35 points from completed checks; unavailable checks added 0 points
+    expect(totalPoints).toBe(35);
+
+    const verdict = evaluateVerdict(checks, acceptedSignals, totalPoints);
+    expect(verdict.label).toBe("Caution");
+    expect(verdict.riskIndex).toBe(35);
+    expect(verdict.labelExplanation).toContain("based on 3 of 5 checks");
+    expect(verdict.labelExplanation).toContain("Safe label is locked");
+  });
+
+  it("keeps Safe label locked on 0 points if only 3 of 5 checks completed", () => {
+    const checks: CheckResult[] = [
+      createCompletedCheck("message_flags"),
+      createCompletedCheck("domain_age"),
+      createCompletedCheck("careers_match"),
+      {
+        ...createCompletedCheck("registration"),
+        status: "unavailable",
+        reasonCode: "missing_key",
+      },
+      {
+        ...createCompletedCheck("complaints"),
+        status: "inconclusive",
+        reasonCode: "no_data",
+      },
+    ];
+
+    const completedChecks = checks.filter((c) => c.status === "completed");
+    const rawSignals = completedChecks.flatMap((c) => c.signals);
+    const { acceptedSignals, totalPoints } = deduplicateAndScoreSignals(rawSignals);
+    const coverage = calculateCoverage(checks);
+
+    expect(totalPoints).toBe(0);
+    expect(coverage.completed).toBe(3);
+
+    const verdict = evaluateVerdict(checks, acceptedSignals, totalPoints);
+    // Even with 0 points, Safe label is LOCKED
+    expect(verdict.label).toBe("Caution");
+    expect(verdict.riskIndex).toBe(0);
+    expect(verdict.labelExplanation).toContain("based on 3 of 5 checks");
+    expect(verdict.labelExplanation).toContain("Safe label is locked");
   });
 
   it("defaults to Caution for non-harmful signals like urgency + free_email_hr (20 pts)", () => {
@@ -150,6 +240,7 @@ describe("lib/rules: Deterministic Scoring & Gates", () => {
     expect(verdict.label).toBe("Caution");
     expect(verdict.ruleId).toBe("caution_default");
     expect(verdict.riskIndex).toBe(20);
+    expect(verdict.labelExplanation).toBe(LABEL_EXPLANATIONS["Caution"]);
   });
 
   it("computes coverage summing to 5", () => {

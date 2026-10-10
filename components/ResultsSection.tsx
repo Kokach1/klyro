@@ -144,10 +144,27 @@ export function ResultsSection({
                 textTransform: "uppercase",
                 letterSpacing: "0.06em",
                 marginBottom: "14px",
+                flexWrap: "wrap",
               }}
             >
               <LabelIcon size={18} color="#000000" />
               <span>{verdict.label}</span>
+              {coverage.completed < coverage.total && (
+                <span
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: 700,
+                    textTransform: "none",
+                    letterSpacing: "normal",
+                    backgroundColor: "rgba(0,0,0,0.1)",
+                    padding: "2px 8px",
+                    border: "1px solid #000000",
+                  }}
+                  data-testid="partial-coverage-badge"
+                >
+                  based on {coverage.completed} of {coverage.total} checks
+                </span>
+              )}
             </div>
 
             <p
@@ -167,9 +184,9 @@ export function ResultsSection({
             </p>
           </div>
 
-          {/* Risk Dial */}
-          <div style={{ display: "flex", justifyContent: "center" }}>
-            <RiskDial score={verdict.riskIndex} label={verdict.label} />
+          {/* Risk Dial with prominent coverage */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
+            <RiskDial score={verdict.riskIndex} label={verdict.label} coverage={coverage} />
           </div>
         </div>
 

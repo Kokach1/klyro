@@ -132,6 +132,8 @@ export function evaluateVerdict(
   riskIndex: number;
   labelExplanation: string;
 } {
+  const coverage = calculateCoverage(checks);
+
   // 1. Harmful-pattern override
   const hasHarmfulPayment = acceptedSignals.some(
     (s) => s.code === "job_payment_demand" || s.code === "training_job_condition"
@@ -146,12 +148,19 @@ export function evaluateVerdict(
   }
 
   // 2. Safe gate evaluation
+  // The Safe label stays locked: Safe only when ALL applicable checks completed and clean.
+  // With partial coverage the best label is Caution with 'based on X of 5 checks'
   const messageCheck = checks.find((c) => c.id === "message_flags");
   const domainCheck = checks.find((c) => c.id === "domain_age");
   const careersCheck = checks.find((c) => c.id === "careers_match");
 
   const anyInconclusive = checks.some((c) => c.status === "inconclusive");
   const anyUnavailable = checks.some((c) => c.status === "unavailable");
+
+  const allApplicableCompleted =
+    coverage.completed === coverage.total &&
+    !anyInconclusive &&
+    !anyUnavailable;
 
   const coreCompleted =
     messageCheck?.status === "completed" &&
@@ -166,8 +175,7 @@ export function evaluateVerdict(
   );
 
   const passesSafeGate =
-    !anyInconclusive &&
-    !anyUnavailable &&
+    allApplicableCompleted &&
     coreCompleted &&
     domainOfficialConfirmed &&
     roleMatched &&
@@ -183,12 +191,17 @@ export function evaluateVerdict(
     };
   }
 
-  // 3. Caution default
+  // 3. Caution default / Partial coverage
+  const isPartial = coverage.completed < coverage.total;
+  const labelExplanation = isPartial
+    ? `Caution (based on ${coverage.completed} of ${coverage.total} checks): Safe label is locked until all checks complete.`
+    : LABEL_EXPLANATIONS["Caution"];
+
   return {
     label: "Caution",
     ruleId: "caution_default",
     riskIndex: totalPoints,
-    labelExplanation: LABEL_EXPLANATIONS["Caution"],
+    labelExplanation,
   };
 }
 
@@ -215,7 +228,7 @@ export function generateRuleSummary(
   const nextSteps: string[] = [];
 
   if (ruleId === "harmful_payment_override") {
-    summary = `High risk detected. This posting contains an explicit payment or fee condition to obtain employment or mandatory training. Scored risk index is ${riskIndex}.`;
+    summary = `High risk detected. This posting contains an explicit payment or fee condition to obtain employment or mandatory training. Scored risk index is ${riskIndex} (based on ${coverage.completed} of ${coverage.total} checks).`;
     nextSteps.push("Do not send money, deposits, or gift cards to secure this position.");
     nextSteps.push("Verify the job directly on the employer's official website careers portal.");
     nextSteps.push("Cease contact with this recruiter if they insist on upfront payment.");
@@ -227,9 +240,9 @@ export function generateRuleSummary(
   } else {
     // Caution default
     if (signals.length > 0) {
-      summary = `Caution advised. ${signals.length} risk signal(s) observed (${signals.map((s) => s.code.replace(/_/g, " ")).join(", ")}). Risk index: ${riskIndex}.`;
+      summary = `Caution advised. ${signals.length} risk signal(s) observed (${signals.map((s) => s.code.replace(/_/g, " ")).join(", ")}). Risk index: ${riskIndex} (based on ${coverage.completed} of ${coverage.total} checks).`;
     } else {
-      summary = `No scored risk signals found in reviewed text, but verification is incomplete (${coverage.completed} of 5 checks completed).`;
+      summary = `No scored risk signals found in completed checks, but verification is incomplete (${coverage.completed} of ${coverage.total} checks completed). Safe label is locked until all checks complete.`;
     }
 
     if (unavailableOrInconclusive.length > 0) {

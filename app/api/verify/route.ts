@@ -182,8 +182,9 @@ export async function POST(req: NextRequest) {
           complaintsCheck,
         ];
 
-        // Scoring and coverage
-        const rawSignals: Signal[] = checks.flatMap((c) => c.signals);
+        // Scoring and coverage: score from completed checks only; missing/unavailable checks add 0 points and stay neutral
+        const completedChecks = checks.filter((c) => c.status === "completed");
+        const rawSignals: Signal[] = completedChecks.flatMap((c) => c.signals);
         const { acceptedSignals, totalPoints } = deduplicateAndScoreSignals(rawSignals);
         const coverage = calculateCoverage(checks);
         const verdictBase = evaluateVerdict(checks, acceptedSignals, totalPoints);
@@ -284,7 +285,9 @@ export async function POST(req: NextRequest) {
       runCheckSafely("complaints", () => checkComplaints(extracted, analysisDate)),
     ]);
 
-    const rawSignals: Signal[] = checks.flatMap((c) => c.signals);
+    // Scoring and coverage: score from completed checks only; missing/unavailable checks add 0 points and stay neutral
+    const completedChecks = checks.filter((c) => c.status === "completed");
+    const rawSignals: Signal[] = completedChecks.flatMap((c) => c.signals);
     const { acceptedSignals, totalPoints } = deduplicateAndScoreSignals(rawSignals);
     const coverage = calculateCoverage(checks);
     const verdictBase = evaluateVerdict(checks, acceptedSignals, totalPoints);

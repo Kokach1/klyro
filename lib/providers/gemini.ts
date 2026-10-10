@@ -80,9 +80,9 @@ export async function extractClaimsWithGeminiKey(
   timeoutMs = 15000
 ): Promise<{ extracted: ExtractedClaims; warnings: string[] }> {
   const env = getServerEnv();
-  const configuredModel = env.GEMINI_MODEL?.trim() || "gemini-3.5-flash";
+  const configuredModel = env.GEMINI_MODEL?.trim() || "gemini-3.8-flash";
   const candidateModels = Array.from(
-    new Set([configuredModel, "gemini-3.5-flash", "gemini-3.1-flash-lite", "gemini-flash-latest"])
+    new Set([configuredModel, "gemini-3.8-flash", "gemini-2.5-flash", "gemini-flash-latest"])
   );
 
   const warnings: string[] = [];

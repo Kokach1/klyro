@@ -37,15 +37,20 @@ export async function extractClaimsWithProviderChain(
       try {
         const result = await extractClaimsWithGeminiKey(key, postingText, timeoutMs);
         // Provider succeeded: finish scan on it
+        const rotationWarnings =
+          i > 0
+            ? [`Gemini key #${i} failed; extraction succeeded using rotated key #${i + 1}.`]
+            : [];
         return {
           extracted: result.extracted,
-          warnings: result.warnings,
+          warnings: [...result.warnings, ...rotationWarnings],
           providerUsed: "gemini",
         };
       } catch (err: any) {
-        // Collect reason without leaking key value
+        // Collect reason without leaking key value and continue to next key
         const reason = err.message || "Unknown error";
         failureReasons.push(`Gemini key #${i + 1} failed: ${reason}`);
+        continue;
       }
     }
   } else {

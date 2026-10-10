@@ -1,14 +1,14 @@
 "use client";
 
-import React from "react";
-import { VerdictLabel } from "@/lib/contracts";
+import { Coverage, VerdictLabel } from "@/lib/contracts";
 
 interface RiskDialProps {
   score: number | null; // 0..100, or null if rule evaluation failed
   label: VerdictLabel;
+  coverage?: Coverage;
 }
 
-export function RiskDial({ score, label }: RiskDialProps) {
+export function RiskDial({ score, label, coverage }: RiskDialProps) {
   // SVG Semicircular Arc Math
   // radius = 80, center = (100, 100)
   // angle 180 (left) to 0 (right)
@@ -140,6 +140,26 @@ export function RiskDial({ score, label }: RiskDialProps) {
           Higher = more observed risk signals. Not a probability.
         </span>
       </div>
+
+      {coverage && (
+        <div
+          style={{
+            marginTop: "10px",
+            padding: "4px 12px",
+            backgroundColor: "#F3F4F6",
+            border: "2px solid #000000",
+            boxShadow: "2px 2px 0 #000000",
+            fontSize: "12px",
+            fontWeight: 800,
+            fontFamily: "var(--font-mono)",
+            color: "#000000",
+            textAlign: "center",
+          }}
+          data-testid="dial-coverage"
+        >
+          {coverage.completed} of {coverage.total} checks completed
+        </div>
+      )}
     </div>
   );
 }
