@@ -1,10 +1,10 @@
 # Progress
 ## Status
-Current step: 2 of 10 | Last updated: 2026-10-10T21:56:30Z | Tool: Antigravity
+Current step: 3 of 10 | Last updated: 2026-10-10T21:59:45Z | Tool: Antigravity
 
 ## Steps
 - [x] 1 Scaffold Next.js TS, env files, contracts.ts, rules.ts skeleton, deployable shell
-- [ ] 2 safe-fetch + /api/extract with OpenAI structured extraction; validate fee quotes against source text and discard fabricated quotes
+- [x] 2 safe-fetch + /api/extract with OpenAI structured extraction; validate fee quotes against source text and discard fabricated quotes
 - [ ] 3 Input UI and Claim review UI (focus review heading after extraction)
 - [ ] 4 message_flags check (negation-aware) and domain_age check (WhoisXML, public-suffix-aware domain, six-month rule, creation date only)
 - [ ] 5 careers_match, registration, complaints checks (max 3 SerpAPI calls per scan, max 2 pages per search check, 6 total)
@@ -30,9 +30,15 @@ Current step: 2 of 10 | Last updated: 2026-10-10T21:56:30Z | Tool: Antigravity
 - lib/contracts.ts: Zod schemas and TypeScript types for full pipeline, done
 - lib/rules.ts: Pure deterministic scoring, safe gate, coverage, done
 - lib/prompts.ts: AGENTS.md prompts verbatim, done
+- lib/rate-limit.ts: In-memory rate limiting with hashed client identifier, done
+- lib/safe-fetch.ts: SSRF prevention, IP pinning, DNS resolution, redirect caps, done
+- lib/providers/openai.ts: Structured extraction, quote validation, summary generation, done
+- app/api/extract/route.ts: Input validation, safe URL fetch, OpenAI extraction handler, done
+- tests/safe-fetch.test.ts: Tests for SSRF prevention, IP filtering, URL validation, done
+- tests/extraction-quotes.test.ts: Tests for fee quote preservation and fabricated quote rejection, done
 - app/globals.css: UI tokens, typography, reduced-motion, done
 - app/layout.tsx: HTML shell and metadata, done
-- app/page.tsx: Initial deployable shell, done
+- app/page.tsx: Deployable shell, done
 
 ## Decisions and doc conflicts
 - Key naming: Primary names are OPENAI_API_KEY, SERPAPI_API_KEY, WHOISXML_API_KEY with fallbacks SERPAPI_KEY, WHOISXML_KEY in lib/env.ts.
@@ -53,7 +59,7 @@ Current step: 2 of 10 | Last updated: 2026-10-10T21:56:30Z | Tool: Antigravity
 - OPENCORPORATES_API_KEY (placeholder)
 
 ## Known issues / not tested
-- Live API keys not set in environment (will use deterministic mock/fallback flows and test suites).
+- Live API keys not set in environment (mock fixtures and fallback rule engines are tested).
 
 ## Next action
-Implement lib/safe-fetch.ts (SSRF/DNS/private IP defense), OpenAI extraction provider in lib/providers/openai.ts, and app/api/extract/route.ts with quote validation.
+Build components/InputForm.tsx and components/ClaimReview.tsx with accessible form controls, validation, source text drawer, and focus management.
