@@ -19,6 +19,9 @@ export class SafeFetchError extends Error {
   }
 }
 
+export const BROWSER_USER_AGENT =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36";
+
 /**
  * Checks whether an IPv4 address is in private, loopback, link-local, multicast or reserved ranges.
  */
@@ -301,8 +304,13 @@ export async function safeFetchUrl(
         path: parsed.pathname + parsed.search,
         method: "GET",
         headers: {
-          "User-Agent": "JobScamDetector/1.0 (+https://jobscamdetector.local)",
-          Accept: "text/html, text/plain;q=0.9, */*;q=0.1",
+          "User-Agent": BROWSER_USER_AGENT,
+          Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+          "Accept-Language": "en-US,en;q=0.9",
+          "Sec-Fetch-Dest": "document",
+          "Sec-Fetch-Mode": "navigate",
+          "Sec-Fetch-Site": "none",
+          "Upgrade-Insecure-Requests": "1",
         },
         // Pin DNS lookup to the verified public IP address to prevent DNS rebinding
         lookup: (_hostname, _opts, callback) => {
@@ -318,7 +326,7 @@ export async function safeFetchUrl(
       const req = client.request(reqOptions, (res) => {
         const statusCode = res.statusCode || 200;
 
-        // Check redirects (301, 302, 303, 307, 308)
+        // Check redirects (301, 302, 303, 307, 308) - up to 3 redirects
         if (statusCode >= 300 && statusCode < 400 && res.headers.location) {
           res.resume(); // discard body
           const nextUrl = new URL(res.headers.location, currentUrl).toString();
@@ -326,18 +334,39 @@ export async function safeFetchUrl(
           return;
         }
 
-        // Verify content-type
+        // Check for blocked/refused pages (Cloudflare, bot protection, 401, 403, 429)
+        if (statusCode === 401 || statusCode === 403 || statusCode === 429) {
+          res.resume();
+          reject(
+            new SafeFetchError(
+              `Target page refused access (HTTP ${statusCode}).`,
+              "blocked_page"
+            )
+          );
+          return;
+        }
+
+        if (statusCode >= 400) {
+          res.resume();
+          reject(
+            new SafeFetchError(
+              `Target page returned HTTP ${statusCode}.`,
+              "http_error"
+            )
+          );
+          return;
+        }
+
+        // Verify content-type (HTML only)
         const contentType = (res.headers["content-type"] || "").toLowerCase();
         if (
-          contentType &&
           !contentType.includes("text/html") &&
-          !contentType.includes("text/plain") &&
-          !contentType.includes("application/xhtml")
+          !contentType.includes("application/xhtml+xml")
         ) {
           res.resume();
           reject(
             new SafeFetchError(
-              `Unsupported Content-Type: ${contentType}. Only text/html and text/plain are supported.`,
+              `Unsupported Content-Type: ${contentType || "unknown"}. Only HTML pages are permitted.`,
               "unsupported_content_type"
             )
           );

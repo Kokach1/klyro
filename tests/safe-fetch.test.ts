@@ -7,6 +7,7 @@ import {
   extractEmployerRegistrableDomain,
   sanitizeHtmlToText,
   SafeFetchError,
+  BROWSER_USER_AGENT,
 } from "../lib/safe-fetch";
 
 describe("Safe Fetch - IP & URL Security", () => {
@@ -95,4 +96,19 @@ describe("Safe Fetch - IP & URL Security", () => {
     expect(text).toContain("Software Engineer");
     expect(text).toContain("Salary: 50,000 INR.");
   });
+
+  it("exports a real browser User-Agent string", () => {
+    expect(BROWSER_USER_AGENT).toContain("Mozilla/5.0");
+    expect(BROWSER_USER_AGENT).toContain("AppleWebKit/537.36");
+    expect(BROWSER_USER_AGENT).toContain("Chrome/126.0");
+    expect(BROWSER_USER_AGENT).toContain("Safari/537.36");
+  });
+
+  it("identifies blocked_page as an error code on SafeFetchError", () => {
+    const err = new SafeFetchError("Target page refused access (HTTP 403).", "blocked_page");
+    expect(err.code).toBe("blocked_page");
+    expect(err.message).toContain("403");
+  });
 });
+
+

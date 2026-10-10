@@ -151,9 +151,9 @@ export async function checkCareersMatch(
     // Try reading page safely
     try {
       const pageResult = await safeFetchUrl(item.link, {
-        timeoutMs: 6000,
+        timeoutMs: 8000,
         maxBytes: 1024 * 512,
-        maxRedirects: 2,
+        maxRedirects: 3,
         maxTextChars: 8000,
       });
       pagesRead++;

@@ -4,6 +4,20 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+### 2026-10-11T02:45:00+05:30 — Fix outbound page fetch blocking with browser User-Agent and strict HTML policy
+
+- Changed: Updated `lib/safe-fetch.ts` to send a standard real browser `User-Agent` (`Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36`) and modern navigation headers on all outbound requests; enforced max 3 redirects and 8s timeout; restricted content types strictly to HTML (`text/html`, `application/xhtml+xml`); updated `lib/checks/careers-match.ts`, `lib/checks/registration.ts`, and `lib/checks/complaints.ts` to align with 8s timeout and 3 redirects; added tests in `tests/safe-fetch.test.ts`.
+- Why: Prevent anti-bot scrapers and Cloudflare from immediately blocking outbound vacancy, career page, and registry checks due to generic/bot user agent strings, while properly preserving `blocked_page` handling for targets that still refuse access (HTTP 401/403/429).
+- Validation: 37 Vitest tests passing (`npm test`), TypeScript typecheck passing, and production build compiled successfully.
+- Limitations: Sites with heavy JavaScript challenge walls that refuse all HTTP requests still resolve to `blocked_page` / inconclusive as designed.
+
+### 2026-10-11T01:59:37+05:30 — Preserve scan state while opening verification results
+
+- Changed: Updated `app/page.tsx` to use the History API for internal `#review` and `#results` address updates instead of dispatching hash-change navigation events.
+- Why: Opening `#results` while the verification stream was still pending triggered the direct-link safeguard and reset the scan to the input page.
+- Validation: `npm run typecheck` passed; automated tests and production build are recorded with this change after the sandbox filesystem validation restriction is cleared.
+- Limitations: Direct result anchors without an active scan still return to the input state by design.
+
 ### 2026-10-11T01:45:00+05:30 — Add live extraction progress bar and verification streaming monitor
 
 - Changed: Added live animated progress bar and detailed status card to `components/InputForm.tsx` during extraction; added striped animated progress keyframes in `app/globals.css`; added real-time 5-check progression monitor with live completion counter and checklist badges in `app/page.tsx`.

@@ -23,6 +23,11 @@ import {
 
 type AppStage = "input" | "review" | "results";
 
+function setScanHash(hash: "review" | "results" | null) {
+  const target = hash ? `#${hash}` : window.location.pathname;
+  window.history.replaceState(null, "", target);
+}
+
 export default function Home() {
   const [stage, setStage] = useState<AppStage>("input");
   const [isExtracting, setIsExtracting] = useState(false);
@@ -81,7 +86,7 @@ export default function Home() {
       setExtractSource(response.source);
       setExtractedClaims(response.extracted);
       setStage("review");
-      window.location.hash = "review";
+      setScanHash("review");
     } catch (err: any) {
       setExtractError(err.message || "Network error while connecting to extraction service.");
     } finally {
@@ -96,7 +101,7 @@ export default function Home() {
     setIsRunningChecks(true);
     setStreamInterrupted(false);
     setStage("results");
-    window.location.hash = "results";
+    setScanHash("results");
 
     // Initialize all checks to pending
     const initialStates: Record<CheckId, "pending" | "running" | "done"> = {
@@ -244,7 +249,7 @@ export default function Home() {
     setVerdictResult(null);
     setExtractError(null);
     setStreamInterrupted(false);
-    window.location.hash = "";
+    setScanHash(null);
   };
 
   return (
@@ -297,7 +302,7 @@ export default function Home() {
             onRunChecks={handleRunChecks}
             onEditPosting={() => {
               setStage("input");
-              window.location.hash = "";
+              setScanHash(null);
             }}
             isRunningChecks={isRunningChecks}
           />

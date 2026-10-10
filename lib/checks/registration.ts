@@ -152,9 +152,9 @@ export async function checkRegistration(
     // Try reading page to corroborate legal entity name and CIN
     try {
       const page = await safeFetchUrl(item.link, {
-        timeoutMs: 6000,
+        timeoutMs: 8000,
         maxBytes: 1024 * 512,
-        maxRedirects: 2,
+        maxRedirects: 3,
         maxTextChars: 8000,
       });
       pagesRead++;
