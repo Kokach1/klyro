@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+### 2026-10-11T01:45:00+05:30 — Add live extraction progress bar and verification streaming monitor
+
+- Changed: Added live animated progress bar and detailed status card to `components/InputForm.tsx` during extraction; added striped animated progress keyframes in `app/globals.css`; added real-time 5-check progression monitor with live completion counter and checklist badges in `app/page.tsx`.
+- Why: Give users clear, animated visual feedback with real-time progression bars during both extraction and verification checks instead of an unresponsive-looking screen.
+- Validation: 35 automated Vitest tests passed, `npm run build` compiled without errors.
+- Limitations: None; visual progression enhancement only.
+
 ### 2026-10-11T01:36:00+05:30 — Add Gemini model fallback chain and defensive credential parsing
 
 - Changed: Updated `lib/providers/gemini.ts` with a multi-model fallback chain (`gemini-3.5-flash`, `gemini-3.1-flash-lite`, `gemini-flash-latest`), updated `lib/env.ts` to defensively parse WhoisXML API keys when sample URLs are pasted, and updated `app/api/extract/route.ts` to surface detailed error causes.

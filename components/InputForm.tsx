@@ -238,16 +238,86 @@ export function InputForm({
         <button
           type="submit"
           id="btn-analyse"
-          className={
-            isLoading || inputValue.trim().length === 0 || isOverLimit
-              ? "btn-primary"
-              : "btn-primary"
-          }
+          className="btn-primary"
           disabled={isLoading || inputValue.trim().length === 0 || isOverLimit}
         >
           {isLoading && <SpinnerIcon size={16} color="#000000" />}
-          <span>{isLoading ? "Reading the posting..." : "Analyse posting"}</span>
+          <span>{isLoading ? "Analyzing posting..." : "Analyse posting"}</span>
         </button>
+
+        {/* Live Extraction Progression Bar */}
+        {isLoading && (
+          <div
+            style={{
+              marginTop: "20px",
+              padding: "16px 18px",
+              backgroundColor: "#FFFFFF",
+              border: "3px solid #000000",
+              boxShadow: "4px 4px 0 #000000",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "10px",
+                flexWrap: "wrap",
+                gap: "8px",
+              }}
+            >
+              <span
+                style={{
+                  fontSize: "14px",
+                  fontWeight: 800,
+                  color: "#000000",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                <SpinnerIcon size={16} color="#000000" />
+                Scanning posting with Google Gemini AI...
+              </span>
+              <span
+                style={{
+                  fontSize: "11px",
+                  fontWeight: 800,
+                  fontFamily: "var(--font-mono)",
+                  padding: "3px 8px",
+                  backgroundColor: "var(--color-action)",
+                  border: "2px solid #000000",
+                }}
+              >
+                In progress
+              </span>
+            </div>
+
+            {/* Striped animated progression bar */}
+            <div
+              style={{
+                width: "100%",
+                height: "18px",
+                backgroundColor: "#E0E0E0",
+                border: "2px solid #000000",
+                overflow: "hidden",
+              }}
+            >
+              <div
+                className="nb-progress-striped"
+                style={{
+                  height: "100%",
+                  width: "100%",
+                  backgroundColor: "var(--color-action)",
+                }}
+              />
+            </div>
+
+            <p style={{ fontSize: "12px", color: "#444444", marginTop: "10px", lineHeight: "1.4" }}>
+              Extracting company identity, role title, compensation, recruiter contact channels, and candidate fee claims.
+            </p>
+          </div>
+        )}
       </form>
     </section>
   );

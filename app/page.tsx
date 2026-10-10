@@ -303,6 +303,138 @@ export default function Home() {
           />
         )}
 
+        {/* Verification in-progress monitor */}
+        {stage === "results" && isRunningChecks && !verdictResult && (
+          <section
+            aria-labelledby="running-heading"
+            className="nb-card"
+            style={{ marginBottom: "28px" }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: "10px",
+                marginBottom: "16px",
+              }}
+            >
+              <div>
+                <h2 id="running-heading" style={{ fontSize: "22px", fontWeight: 900, letterSpacing: "-0.3px" }}>
+                  Running Verification Checks...
+                </h2>
+                <p style={{ fontSize: "14px", color: "#333333", marginTop: "4px" }}>
+                  Executing 5 independent evidence checks concurrently across message signals, domain age, official careers portals, corporate registrations, and scam complaints.
+                </p>
+              </div>
+              <span
+                style={{
+                  fontSize: "13px",
+                  fontWeight: 800,
+                  fontFamily: "var(--font-mono)",
+                  padding: "6px 14px",
+                  backgroundColor: "var(--color-action)",
+                  border: "2px solid #000000",
+                  boxShadow: "3px 3px 0 #000000",
+                }}
+              >
+                {Object.values(checkUiStates).filter((s) => s === "done").length} of 5 Completed
+              </span>
+            </div>
+
+            {/* Overall Progression Bar */}
+            <div
+              style={{
+                width: "100%",
+                height: "20px",
+                backgroundColor: "#FFFFFF",
+                border: "3px solid #000000",
+                boxShadow: "3px 3px 0 #000000",
+                marginBottom: "24px",
+                overflow: "hidden",
+              }}
+            >
+              <div
+                className="nb-progress-striped"
+                style={{
+                  height: "100%",
+                  backgroundColor: "var(--color-action)",
+                  width: `${Math.max(15, (Object.values(checkUiStates).filter((s) => s === "done").length / 5) * 100)}%`,
+                  transition: "width 0.4s ease",
+                }}
+              />
+            </div>
+
+            {/* Checklist */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              {[
+                {
+                  id: "message_flags" as CheckId,
+                  title: "1. Message Red Flags",
+                  desc: "Scanning for upfront payment demands, paid training fees, urgency, free webmail",
+                },
+                {
+                  id: "domain_age" as CheckId,
+                  title: "2. Employer Domain & Age",
+                  desc: "Checking WHOIS domain creation date and 6-month contradiction",
+                },
+                {
+                  id: "careers_match" as CheckId,
+                  title: "3. Official Careers Match",
+                  desc: "Verifying vacancy exists on official employer careers portal",
+                },
+                {
+                  id: "registration" as CheckId,
+                  title: "4. Corporate Registration",
+                  desc: "Checking Ministry of Corporate Affairs (MCA) records & CIN",
+                },
+                {
+                  id: "complaints" as CheckId,
+                  title: "5. Scam Complaints",
+                  desc: "Scanning public sources for deduplicated complaint and allegation patterns",
+                },
+              ].map((checkDef) => {
+                const uiState = checkUiStates[checkDef.id] || "pending";
+                return (
+                  <div
+                    key={checkDef.id}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: "12px 16px",
+                      backgroundColor: uiState === "done" ? "#F5FFF5" : uiState === "running" ? "#FFFDF5" : "#FFFFFF",
+                      border: "2px solid #000000",
+                      boxShadow: uiState === "running" ? "3px 3px 0 #000000" : "none",
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontSize: "14px", fontWeight: 700, color: "#000000" }}>
+                        {checkDef.title}
+                      </div>
+                      <div style={{ fontSize: "12px", color: "#555555" }}>
+                        {checkDef.desc}
+                      </div>
+                    </div>
+                    <div>
+                      {uiState === "done" && (
+                        <span className="badge badge-safe">Done</span>
+                      )}
+                      {uiState === "running" && (
+                        <span className="badge badge-running">Checking...</span>
+                      )}
+                      {uiState === "pending" && (
+                        <span className="badge badge-neutral">Queued</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
         {stage === "results" && verdictResult && (
           <ResultsSection
             result={verdictResult}
