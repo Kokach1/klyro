@@ -6,7 +6,52 @@ import {
   Signal,
 } from "../contracts";
 import { searchGoogleWithSerpApi, SerpApiError } from "../providers/serpapi";
-import { safeFetchUrl } from "../safe-fetch";
+import { safeFetchUrl, isAlwaysBlockedDomain } from "../safe-fetch";
+
+// Employer-linked ATS portals per specification
+export const EMPLOYER_ATS_DOMAINS = [
+  "lever.co",
+  "greenhouse.io",
+  "workday.com",
+  "myworkdayjobs.com",
+  "keka.com",
+  "ashbyhq.com",
+  "smartrecruiters.com",
+  "bamboohr.com",
+  "jobvite.com",
+];
+
+/**
+ * Priority rank for candidate careers pages:
+ * 1. Employer's own domain
+ * 2. Employer-linked portals (lever.co, greenhouse.io, workday, keka, etc.)
+ * 3. Other domains
+ * 4. Aggregators / skip-list (linkedin, indeed, glassdoor, naukri, etc.)
+ */
+export function getCareersPagePriority(url: string, employerDomain: string | null): number {
+  const lowerUrl = url.toLowerCase();
+
+  // 1. Employer's own domain
+  if (employerDomain) {
+    const cleanEmp = employerDomain.replace(/^https?:\/\//i, "").replace(/\/.*$/, "").toLowerCase();
+    if (cleanEmp && lowerUrl.includes(cleanEmp)) {
+      return 1;
+    }
+  }
+
+  // 2. Employer-linked portals (lever.co, greenhouse.io, workday, keka)
+  if (EMPLOYER_ATS_DOMAINS.some((ats) => lowerUrl.includes(ats))) {
+    return 2;
+  }
+
+  // 4. Aggregators / blocked domains last
+  if (isAlwaysBlockedDomain(url)) {
+    return 4;
+  }
+
+  // 3. Other domains
+  return 3;
+}
 
 /**
  * Check 3: careers_match
@@ -49,14 +94,19 @@ export async function checkCareersMatch(
     };
   }
 
-  // Construct query: company + role + location + careers/jobs
-  // Use known employer domain in site: if available
+  const cleanDomain = domain
+    ? domain.replace(/^https?:\/\//i, "").replace(/\/.*$/, "").trim().toLowerCase()
+    : null;
+
+  // Careers query focused on employer official site rather than keyword soup:
+  // '<company name> careers' or '<company name> jobs official site'
+  // If employer domain is known, add site:thatdomain.com
   let query = "";
-  if (domain) {
-    query = `site:${domain} ${role || company} careers jobs`;
+  if (cleanDomain) {
+    const base = company ? `${company} careers` : `${role || "company"} careers`;
+    query = `${base} site:${cleanDomain}`;
   } else {
-    const parts = [company, role, location, "careers jobs"].filter(Boolean);
-    query = parts.join(" ");
+    query = company ? `${company} jobs official site` : `${role} jobs official site`;
   }
 
   let searchResults: Awaited<ReturnType<typeof searchGoogleWithSerpApi>> = [];
@@ -127,17 +177,22 @@ export async function checkCareersMatch(
     };
   }
 
+  // Prioritize candidates: employer domain -> employer ATS -> other -> aggregators last
+  const prioritizedResults = [...searchResults].sort(
+    (a, b) =>
+      getCareersPagePriority(a.link, cleanDomain) -
+      getCareersPagePriority(b.link, cleanDomain)
+  );
+
   // Bounded reading: read at most 2 relevant candidate pages
   let pagesRead = 0;
   let matchingPageFound = false;
   let confirmedDomain = false;
 
-  for (const item of searchResults) {
-    if (pagesRead >= 2) break;
-
+  for (const item of prioritizedResults) {
     // Record search snippet lead
     evidenceList.push({
-      id: `ev-car-snip-${pagesRead + 1}`,
+      id: `ev-car-snip-${evidenceList.length + 1}`,
       kind: "search_snippet",
       title: item.title,
       url: item.link,
@@ -148,7 +203,14 @@ export async function checkCareersMatch(
       classification: "unknown",
     });
 
-    // Try reading page safely
+    // Skip domains that always block servers: fetching them wastes the bounded attempt
+    if (isAlwaysBlockedDomain(item.link)) {
+      continue;
+    }
+
+    if (pagesRead >= 2) break;
+
+    // Try reading candidate page safely
     try {
       const pageResult = await safeFetchUrl(item.link, {
         timeoutMs: 8000,
@@ -159,16 +221,20 @@ export async function checkCareersMatch(
       pagesRead++;
 
       const pageTextLower = pageResult.text.toLowerCase();
+      const titleLower = item.title.toLowerCase();
       const roleLower = role.toLowerCase();
       const companyLower = company.toLowerCase();
 
       // Check if role and company match on this page
-      const hasRole = roleLower && pageTextLower.includes(roleLower);
-      const hasCompany = companyLower ? pageTextLower.includes(companyLower) : true;
+      const hasRole =
+        (roleLower && pageTextLower.includes(roleLower)) ||
+        (roleLower && titleLower.includes(roleLower));
+      const hasCompany =
+        companyLower ? pageTextLower.includes(companyLower) || titleLower.includes(companyLower) : true;
 
       if (hasRole && hasCompany) {
         matchingPageFound = true;
-        if (domain && item.link.includes(domain)) {
+        if (cleanDomain && item.link.toLowerCase().includes(cleanDomain)) {
           confirmedDomain = true;
         }
 

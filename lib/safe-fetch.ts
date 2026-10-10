@@ -228,6 +228,25 @@ export function extractEmployerRegistrableDomain(domainOrUrl: string | null): st
 }
 
 /**
+ * Domains known to always block outbound server HTTP requests (anti-scraping walls).
+ * Skipping direct fetch for these prevents wasting bounded request quotas.
+ */
+export const ALWAYS_BLOCKED_SCRAPE_DOMAINS = [
+  "linkedin.com",
+  "glassdoor",
+  "indeed",
+  "shine.com",
+  "naukri.com",
+  "foundit",
+  "ambitionbox",
+];
+
+export function isAlwaysBlockedDomain(urlOrDomain: string): boolean {
+  const lower = urlOrDomain.toLowerCase();
+  return ALWAYS_BLOCKED_SCRAPE_DOMAINS.some((blocked) => lower.includes(blocked));
+}
+
+/**
  * Strips HTML tags, script, style, navigation, etc., returning clean text excerpt (bounded to maxChars).
  */
 export function sanitizeHtmlToText(html: string, maxChars = 8000): string {

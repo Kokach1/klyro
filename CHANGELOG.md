@@ -4,6 +4,17 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+### 2026-10-11T03:00:00+05:30 — Smarter careers search, ATS prioritization, and snippet-corroborated registry check
+
+- Changed:
+  - `lib/checks/careers-match.ts`: Replaced role-keyword soup queries with employer-focused queries (`<company> careers site:<domain>` when domain is present, or `<company> jobs official site`); added priority ranking for candidate pages (1: employer domain, 2: employer-linked ATS portals including `lever.co`, `greenhouse.io`, `workday`, `keka`, 3: general web, 4: aggregators last); filtered out domains on the skip list (`isAlwaysBlockedDomain`) from outbound page fetches so bounded fetch quota is preserved for employer sources.
+  - `lib/checks/registration.ts`: Prioritized official/trusted corporate databases (`mca.gov.in`, `zaubacorp.com`, `thecompanycheck.com`, `vakilsearch.com`, `tofler.in`); skipped direct server fetching for `mca.gov.in` and skip-list aggregators; treated snippet CIN + exact legal name matches directly as corporate corroboration (`identityMatch: "high"`, `status: "completed"`, `classification: "corroboration"`) since MCA blocks direct server fetch.
+  - `lib/safe-fetch.ts`: Refined `ALWAYS_BLOCKED_SCRAPE_DOMAINS` and `isAlwaysBlockedDomain` covering `linkedin.com`, `glassdoor`, `indeed`, `shine.com`, `naukri.com`, `foundit`, and `ambitionbox`.
+  - `tests/smarter-search.test.ts`: Added 9 unit tests covering skip-list domain checks, ATS candidate prioritization, registry source priority, legal name matching with corporate suffix stripping, and snippet CIN corroboration.
+- Why: Prevent wasting bounded 2-page fetch quotas on anti-scraping walls (aggregators and MCA); ensure candidate reading focuses on employer's own portal or verified ATS platforms; allow genuine Indian company registrations to be corroborated directly via Google search snippets carrying CIN and registered legal entity name.
+- Validation: All 46 Vitest tests passing (`npm test`), Next.js production build (`npm run build`) compiled successfully with all static pages and API routes verified.
+- Limitations: Entities without indexed registry snippets and on sites requiring JavaScript challenges remain inconclusive.
+
 ### 2026-10-11T02:45:00+05:30 — Fix outbound page fetch blocking with browser User-Agent and strict HTML policy
 
 - Changed: Updated `lib/safe-fetch.ts` to send a standard real browser `User-Agent` (`Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36`) and modern navigation headers on all outbound requests; enforced max 3 redirects and 8s timeout; restricted content types strictly to HTML (`text/html`, `application/xhtml+xml`); updated `lib/checks/careers-match.ts`, `lib/checks/registration.ts`, and `lib/checks/complaints.ts` to align with 8s timeout and 3 redirects; added tests in `tests/safe-fetch.test.ts`.
