@@ -215,7 +215,7 @@ export type Coverage = z.infer<typeof CoverageSchema>;
 
 export const VerdictResponseSchema = z.object({
   schemaVersion: z.literal("1.0"),
-  mode: z.enum(["live", "demo_fixture"]),
+  mode: z.literal("live"),
   analyzedAt: z.string(),
   extracted: ExtractedClaimsSchema,
   verdict: VerdictDetailsSchema,

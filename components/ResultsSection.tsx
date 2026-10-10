@@ -34,7 +34,7 @@ export function ResultsSection({
     }
   }, []);
 
-  const { verdict, coverage, checks, nextSteps, disclaimer, mode, analyzedAt } = result;
+  const { verdict, coverage, checks, nextSteps, disclaimer } = result;
 
   // Determine label theme
   let labelBg = "#7FBC8C";   // safe
@@ -59,35 +59,6 @@ export function ResultsSection({
       aria-labelledby="results-heading"
       style={{ marginBottom: "32px" }}
     >
-      {/* Demo Fixture Persistent Banner */}
-      {mode === "demo_fixture" && (
-        <div
-          role="note"
-          style={{
-            backgroundColor: "#FFF3CD",
-            border: "3px solid #000000",
-            boxShadow: "4px 4px 0 #000000",
-            padding: "12px 16px",
-            marginBottom: "20px",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: "8px",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <AlertTriangleIcon size={18} color="#000000" />
-            <span style={{ fontSize: "14px", fontWeight: 700, color: "#000000" }}>
-              Demo fixture - recorded evidence, not a live check
-            </span>
-          </div>
-          <span style={{ fontSize: "12px", color: "#333333", fontFamily: "var(--font-mono)" }}>
-            Recorded: {new Date(analyzedAt).toLocaleString()}
-          </span>
-        </div>
-      )}
-
       {/* Interrupted Stream Notice */}
       {isStreamInterrupted && (
         <div

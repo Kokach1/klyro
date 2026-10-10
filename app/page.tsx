@@ -13,13 +13,6 @@ import {
 import { InputForm } from "@/components/InputForm";
 import { ClaimReview } from "@/components/ClaimReview";
 import { ResultsSection } from "@/components/ResultsSection";
-import { MethodologySection } from "@/components/MethodologySection";
-import {
-  FIXTURE_OFFICIAL_ROLE,
-  FIXTURE_PAYMENT_FORWARD,
-  FIXTURE_PAID_COURSE,
-  FIXTURE_UNAVAILABLE_PROVIDERS,
-} from "@/fixtures/demo-cases";
 import {
   calculateCoverage,
   deduplicateAndScoreSignals,
@@ -244,20 +237,6 @@ export default function Home() {
     }
   };
 
-  // Demo fixture loader
-  const handleLoadFixture = (fixture: VerdictResponse) => {
-    setExtractSource({
-      inputType: "text",
-      url: null,
-      text: "Demo fixture source text.",
-      retrievedAt: fixture.analyzedAt,
-    });
-    setExtractedClaims(fixture.extracted);
-    setVerdictResult(fixture);
-    setStage("results");
-    window.location.hash = "results";
-  };
-
   const handleStartNewScan = () => {
     setStage("input");
     setExtractSource(null);
@@ -283,8 +262,8 @@ export default function Home() {
             Job Scam Detector
           </h1>
           <nav aria-label="Quick links">
-            <a href="#methodology" style={{ fontSize: "13px", fontWeight: 700, textDecoration: "underline" }}>
-              Methodology
+            <a href="/about" style={{ fontSize: "13px", fontWeight: 700, textDecoration: "underline" }}>
+              About &amp; Methodology
             </a>
           </nav>
         </div>
@@ -292,85 +271,6 @@ export default function Home() {
           Check a job post before you apply or pay. Evidence-backed. No AI guessing.
         </p>
 
-        {/* Demo Fixtures Quick Links */}
-        <div
-          style={{
-            marginTop: "14px",
-            padding: "10px 14px",
-            backgroundColor: "#FFFFFF",
-            border: "3px solid #000000",
-            boxShadow: "4px 4px 0 #000000",
-            display: "flex",
-            alignItems: "center",
-            gap: "10px",
-            flexWrap: "wrap",
-            fontSize: "13px",
-          }}
-        >
-          <span style={{ fontWeight: 700, color: "#000000" }}>
-            Load demo:
-          </span>
-          <button
-            type="button"
-            onClick={() => handleLoadFixture(FIXTURE_OFFICIAL_ROLE)}
-            style={{
-              padding: "4px 10px",
-              border: "2px solid #000000",
-              backgroundColor: "#7FBC8C",
-              color: "#000000",
-              fontWeight: 700,
-              cursor: "pointer",
-              fontSize: "12px",
-            }}
-          >
-            Official role (Safe)
-          </button>
-          <button
-            type="button"
-            onClick={() => handleLoadFixture(FIXTURE_PAYMENT_FORWARD)}
-            style={{
-              padding: "4px 10px",
-              border: "2px solid #000000",
-              backgroundColor: "#FF6B6B",
-              color: "#000000",
-              fontWeight: 700,
-              cursor: "pointer",
-              fontSize: "12px",
-            }}
-          >
-            Payment demand (Scam)
-          </button>
-          <button
-            type="button"
-            onClick={() => handleLoadFixture(FIXTURE_PAID_COURSE)}
-            style={{
-              padding: "4px 10px",
-              border: "2px solid #000000",
-              backgroundColor: "#FFB347",
-              color: "#000000",
-              fontWeight: 700,
-              cursor: "pointer",
-              fontSize: "12px",
-            }}
-          >
-            Paid training (Caution)
-          </button>
-          <button
-            type="button"
-            onClick={() => handleLoadFixture(FIXTURE_UNAVAILABLE_PROVIDERS)}
-            style={{
-              padding: "4px 10px",
-              border: "2px solid #000000",
-              backgroundColor: "#E0E0E0",
-              color: "#000000",
-              fontWeight: 700,
-              cursor: "pointer",
-              fontSize: "12px",
-            }}
-          >
-            Missing keys (Unavailable)
-          </button>
-        </div>
       </header>
 
       {/* Screen Reader Progress Announcements */}
@@ -449,9 +349,6 @@ export default function Home() {
             </button>
           </div>
         )}
-
-        {/* Methodology Section (accessible at all times) */}
-        <MethodologySection />
       </main>
     </div>
   );

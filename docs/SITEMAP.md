@@ -1,16 +1,16 @@
 # Job Scam Detector: sitemap
 
 ## Navigation decision
-Implement one page at `/`. Keep extraction, correction, checking and results in client memory. Use anchors for sections, not separate persisted result routes. Refreshing the page resets the scan. Do not invent `/results/:id`, history, account or dashboard pages.
+Keep extraction, correction, checking and results in client memory at `/`. Use anchors for scan sections, not separate persisted result routes. The static About and Methodology content lives at `/about`. Refreshing the scan page resets the scan. Do not invent `/results/:id`, history, account or dashboard pages.
 
 | Address | Purpose | Required states |
 | --- | --- | --- |
 | `/` | Landing and input | Empty, editable text/URL input, validation error, extracting, URL blocked, extraction failed |
 | `/#review` | Review extracted claims | Ready for correction, unknown fields, identity ambiguity, validation error, submitting |
 | `/#results` | Progress and verdict | Pending, per-check running, completed result, partial result, all providers unavailable, interrupted scan |
-| `/#methodology` | About and methodology | Static explanation of five checks, rules, label caveats, privacy and provider limitations |
+| `/about` | About and methodology | Static explanation of five checks, rules, label caveats, privacy and provider limitations |
 
-Anchors scroll within the same document. Opening an anchor without scan state must show a short empty state with "Start a check"; it must not fetch a previous user's result. Keep the methodology section accessible without scanning.
+Scan anchors scroll within the same document. Opening a scan anchor without state must show a short empty state with "Start a check"; it must not fetch a previous user's result. Keep About and Methodology accessible without scanning.
 
 ## `/`: input section
 Show the title, one-sentence purpose, a two-option "Message text" / "Job link" selector, its input, privacy notice and "Analyse" button. Default to message text. Accept no attachments in the initial MVP.
@@ -46,7 +46,7 @@ Pending and running are UI-only states. Terminal data statuses are `completed`, 
 - Stream interrupted: retain received cards, mark unresolved cards unavailable with `interrupted`, and show Retry. Do not display a final result without recomputing the rules from the partial checks.
 - New check: clear old results and return focus to the input.
 
-## `/#methodology`: static section
+## `/about`: static page
 Explain what each check does, the deterministic scoring rules, the Safe gate and limitations. Link to the exact rules presented in AGENTS.md through an on-page summary, not to private build files. Describe submission to AI/search providers, no app-side storage, and no guarantee of legitimacy. Keep the fixed disclaimer visible on the result as well as here.
 
 ## API routes, not user pages

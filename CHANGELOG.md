@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+### 2026-10-11T01:11:16+05:30 — Remove recorded demo flow and separate methodology page
+
+- Changed: Removed fixture loading, fixture data, the fixture response mode, and fixture-only result UI from `app/page.tsx`, `fixtures/demo-cases.ts`, `components/ResultsSection.tsx`, and `lib/contracts.ts`; added `app/about/page.tsx`; updated the home-page navigation and project documentation.
+- Why: Keep the product limited to live checks and move About & Methodology out of the scan workflow.
+- Validation: `npm run test` passed (35 tests), `npm run typecheck` passed, and `npm run build` passed with both `/` and `/about` generated.
+- Limitations: Live Gemini extraction and SerpAPI checks responded successfully in an end-to-end local scan. The configured WhoisXML credential was rejected by its provider, so domain-age checks remain honestly unavailable until it is replaced.
+
 ### 2026-10-11T00:50:00+05:30 — Restyle UI with neo-brutalism design system
 
 - Changed: Updated `app/globals.css`, `app/page.tsx`, `components/CheckCard.tsx`, `components/ClaimReview.tsx`, `components/InputForm.tsx`, `components/MethodologySection.tsx`, `components/ResultsSection.tsx`, and `components/RiskDial.tsx`.

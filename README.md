@@ -129,11 +129,12 @@ Points are computed strictly from verified evidence. Scored signals are deduplic
 ```text
 app/
   api/
-    extract/route.ts        # Input validation, safe URL fetch, OpenAI extraction
+    extract/route.ts        # Input validation, safe URL fetch, Gemini/OpenAI extraction
     verify/route.ts         # Check orchestration, NDJSON stream, rules fallback
+  about/page.tsx            # About and methodology page
   globals.css               # Design tokens, typography, reduced motion
   layout.tsx                # HTML metadata and root shell
-  page.tsx                  # Single-page UI with anchor routing (#review, #results, #methodology)
+  page.tsx                  # Scan UI with review and results anchors
 components/
   CheckCard.tsx             # Terminal status chips, findings, expandable evidence
   ClaimReview.tsx           # Editable claim fields and immutable source drawer
@@ -148,8 +149,6 @@ docs/
   UI_UX_SPEC.md             # Visual design tokens and layout rules
   TECHNICAL_SPEC.md         # Data contracts, API specs, provider adapters
   AGENTS.md                 # Agent instructions, verbatim prompts, test cases
-fixtures/
-  demo-cases.ts             # Four recorded demo fixtures (Safe, Scam, Caution, Unavailable)
 lib/
   checks/                   # Five verification check implementations
   providers/                # OpenAI, SerpAPI, WhoisXML provider adapters

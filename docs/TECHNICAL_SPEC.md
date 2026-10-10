@@ -53,7 +53,7 @@ These are explicit implementation defaults for the MVP, not provider guarantees:
 - Extraction/model request timeout: 15 seconds. Each verification check: 15 seconds total, including its provider call and bounded page reads. Summarization: 10 seconds. Entire verify request: 40 seconds with cancellation and partial results before the deadline. Configure a 60-second route budget only if the actual Vercel account supports it; verify this at deployment. Reduce internal budgets if it does not.
 - Run independent checks concurrently. Reuse domain candidates from careers discovery; if that dependency consumes the domain budget, report timeout rather than extending indefinitely. Use abort signals and `Promise.allSettled` or equivalent bounded orchestration.
 - No automatic retries in the initial build. One user-triggered retry starts a new request and consumes quota.
-- At most one active scan in each UI. Add a best-effort per-instance server limit of 5 extraction and 5 verify requests per IP per minute with short-lived in-memory counters, without storing raw IPs in logs. This is not reliable cross-instance enforcement. Use deployment-level rate limiting if available; otherwise keep the public demo controlled and provider budgets capped. Do not claim abuse protection is complete.
+- At most one active scan in each UI. Add a best-effort per-instance server limit of 5 extraction and 5 verify requests per IP per minute with short-lived in-memory counters, without storing raw IPs in logs. This is not reliable cross-instance enforcement. Use deployment-level rate limiting if available and keep provider budgets capped. Do not claim abuse protection is complete.
 
 ## Input retrieval and source safety
 Accept absolute public HTTP(S) URLs only. Reject embedded user credentials, private/reserved/internal IP ranges, loopback, localhost, link-local, multicast, IPv6 equivalents, cloud metadata addresses and non-HTTP protocols. Resolve every hostname and reject any non-public resolved address. Recheck each redirect before following it.
@@ -154,7 +154,7 @@ type CheckResult = {
 };
 type VerdictResponse = {
   schemaVersion: "1.0";
-  mode: "live" | "demo_fixture";
+  mode: "live";
   analyzedAt: string;
   extracted: ExtractedClaims;
   verdict: {
@@ -186,7 +186,7 @@ Read selected result pages before reporting verified facts. Preserve relevant qu
 ## Tests and deployment
 Use mocked provider adapters for automated tests; never burn real quota during unit tests. Test each signal and negation case in AGENTS.md, ambiguous entities, wrong job-board domain, masked WHOIS dates, search snippets without page access, timeouts, quota, malformed JSON, blocked URL redirects, IPv6/private hosts and HTML escaping.
 
-Deploy a shell early; set environment variables; verify actual function duration support and model availability. Inspect the built browser bundle for secrets and test both input paths on the real deployment. Rehearse with a current official role and fictional scam-pattern cases. Fixtures must carry `mode: "demo_fixture"`, real recorded timestamps or clearly synthetic input-only evidence, and a visible fixture banner. No automatic live-to-fixture fallback.
+Deploy a shell early; set environment variables; verify actual function duration support and model availability. Inspect the built browser bundle for secrets and test both input paths on the real deployment. Rehearse with current public job postings and clearly marked test messages. Do not substitute recorded fixtures for a live scan.
 
 Source of scope: attached requirements PDF dated 10 October 2026. Provider mechanics checked against these official pages on that date:
 - https://serpapi.com/search-api

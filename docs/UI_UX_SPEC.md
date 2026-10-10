@@ -62,7 +62,5 @@ Render quoted evidence as inert text with source label. Show external evidence t
 ## Privacy and honesty
 Do not put posting text in browser URL parameters, localStorage, analytics or error reports. Do not display a green shield or "verified employer" badge. Place this text below every verdict: "This tool reports risk signals and allegations found, not legal findings or guaranteed legitimacy."
 
-For demo fixtures, show a persistent "Demo fixture - recorded evidence, not a live check" banner and the recording timestamp. No fixture must appear as a live API response.
-
 ## Acceptance checks
 Inspect the actual running page at 320px, 390px and desktop width. Test long company names, URL wrapping, five unavailable cards, unknown extracted fields, keyboard navigation, screen-reader labels, focus after extraction, disabled duplicate submissions, red payment evidence and a score-zero Caution result. Require no horizontal page overflow. Respect reduced-motion preferences. Do not ship a screenshot upload control unless the OCR stretch goal is fully implemented and its review step works.

@@ -6,8 +6,8 @@
 - **Short description:** An evidence-backed job scam detection application that protects job seekers from fake recruitment offers, upfront fee demands, newly registered domains, uncorroborated vacancies, and scam allegations through deterministic verification rules.
 - **Code repository URL:** https://github.com/Kokach1/klyro
 - **Final submitted implementation commit SHA:** 88cc803
-- **Working demo URL or local demo steps:** Clone repo, run `npm install`, `npm run build`, and `npm run start`. Visit `http://localhost:3000`. Test live postings or load the 4 pre-recorded demo fixtures directly from the header.
-- **Demo access requirements:** None for demo fixtures. Live scans require valid server environment variables in `.env.local` (`GEMINI_API_KEYS` or `OPENAI_API_KEY` for extraction, `SERPAPI_API_KEY`, `WHOISXML_API_KEY`).
+- **Working demo URL or local demo steps:** Clone repo, run `npm install`, `npm run build`, and `npm run start`. Visit `http://localhost:3000` and submit a live posting.
+- **Demo access requirements:** Live scans require valid server environment variables in `.env.local` (`GEMINI_API_KEYS` or `OPENAI_API_KEY` for extraction, `SERPAPI_API_KEY`, `WHOISXML_API_KEY`).
 
 ## Participants
 
@@ -23,12 +23,8 @@
 - **Start command:** `npm run dev` (dev server) or `npm run build && npm run start` (production)
 - **Demo walkthrough:**
   1. Open http://localhost:3000.
-  2. Either paste forwarded job text / job link, or click one of the four demo fixtures in the header:
-     - Official role (Safe)
-     - Payment demand forward (Likely Scam)
-     - Paid training offer (Caution)
-     - Missing API keys (Unavailable)
-  3. For live input: submit posting -> review/edit extracted claims -> click "Run checks".
+  2. Paste a forwarded job message or public job link, then submit it.
+  3. Review or correct the extracted claims and click "Run checks".
   4. View the real-time NDJSON progress stream across all 5 checks.
   5. Inspect the rule-based risk index dial (0-100, no percent sign), coverage statistics, check findings, and expandable evidence items with inert quoted text.
 - **Checks performed and results:**
@@ -37,9 +33,9 @@
   - Production build compiled successfully (`npm run build`).
   - Client bundle verified free of secrets or credential strings.
   - Responsive visual inspection at 320px, 390px, and desktop viewports with zero horizontal overflow.
-  - Zero emojis across code, UI, fixtures, and documentation.
+  - Zero emojis across code, UI, and documentation.
 - **Known limitations or incomplete features:**
-  - Live third-party provider access requires user API keys; missing keys trigger honest `unavailable` checks with `missing_key` reason codes.
+  - Live third-party provider access requires valid server API keys. The configured WhoisXML credential was rejected during the latest local check, so domain-age results remain honestly unavailable until it is replaced.
   - Screenshot image OCR was excluded from MVP scope per spec.
 - **Libraries, APIs, and public datasets used:**
   - [Next.js](https://nextjs.org/) (App Router, Node.js route handlers)

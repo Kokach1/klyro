@@ -14,7 +14,7 @@ The application operates as a deterministic, evidence-backed evaluation pipeline
 "This tool reports risk signals and allegations found, not legal findings or guaranteed legitimacy."
 
 ## Scope
-- Single-page application at `/` with section anchors: `#review`, `#results`, `#methodology`.
+- Scan flow at `/` with `#review` and `#results` anchors; About and Methodology at `/about`.
 - In-memory state only: refreshing resets the scan. No result IDs, database, history, accounts, or persistent storage.
 - Input modes:
   - Message text (default): multiline textarea (up to 20,000 characters).
@@ -35,8 +35,6 @@ The application operates as a deterministic, evidence-backed evaluation pipeline
   - Deterministic 0-100 risk index (no percent sign; higher = more observed risk signals, not a probability).
   - Coverage summary (e.g., "X of 5 checks completed").
   - Summary and next steps grounded strictly in check evidence.
-- Demo Fixtures:
-  - Recorded demo fixtures with visible "Demo fixture - recorded evidence, not a live check" banner.
 
 ## Out of Scope
 - User authentication and accounts
