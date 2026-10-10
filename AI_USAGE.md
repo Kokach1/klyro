@@ -1,0 +1,20 @@
+# AI usage record
+
+Use Codex during the hackathon and briefly document its actual contribution here. Add a row after each meaningful task or milestone. Keep summaries concise and omit secrets, private data, and full chat transcripts.
+
+## Event build log
+
+| Date and time with timezone | Tool / model, if known | Task | Assistance and affected files | Human review / corrections | Validation and result |
+| --- | --- | --- | --- | --- | --- |
+| 2026-10-10 21:55 IST | Antigravity / Gemini 3.8 Flash | Project Scaffolding | Initialized Next.js 15, TypeScript, Zod, Vitest; created `lib/contracts.ts`, `lib/env.ts`, `lib/rules.ts`, `app/globals.css`, `app/layout.tsx`. | Reviewed; confirmed zero credentials and correct design tokens. | `npm run typecheck` and `npm run build` passed. |
+| 2026-10-10 22:00 IST | Antigravity / Gemini 3.8 Flash | Safe Fetch & Extraction | Built SSRF defense with IP pinning in `lib/safe-fetch.ts` and OpenAI structured extraction with quote validation in `lib/providers/openai.ts`. | Reviewed IP filtering ranges and quote preservation logic. | Vitest unit tests passed (`tests/safe-fetch.test.ts`, `tests/extraction-quotes.test.ts`). |
+| 2026-10-10 22:05 IST | Antigravity / Gemini 3.8 Flash | Input & Review UI | Created `components/InputForm.tsx` and `components/ClaimReview.tsx` with focus management, character counters, and source drawer. | Verified verbatim privacy notice and no emoji symbols. | Typecheck and form state validation passed. |
+| 2026-10-10 22:10 IST | Antigravity / Gemini 3.8 Flash | Check 1 & Check 2 | Implemented `lib/checks/message-flags.ts` (negation-aware) and `lib/checks/domain-age.ts` with WhoisXML adapter and calendar leap-year math. | Verified 6-month date math edge cases (Feb 29 leap year clamping). | 17 tests passed in Vitest (`tests/checks-message-domain.test.ts`). |
+| 2026-10-10 22:15 IST | Antigravity / Gemini 3.8 Flash | Checks 3, 4, 5 & Rules | Implemented careers matching, Indian corporate MCA registration, and multi-source complaint checks in `lib/checks/`. | Verified query construction, CIN regex matching, and bounded page limits (max 2). | Added `tests/rules.test.ts` (25 tests passing). |
+| 2026-10-10 22:20 IST | Antigravity / Gemini 3.8 Flash | Verification API & Streaming | Built `app/api/verify/route.ts` with NDJSON streaming, 15s check timeouts, partial results, and rule fallback summaries. | Checked error responses and stream termination handling. | Verified streaming route handler and contracts. |
+| 2026-10-10 22:25 IST | Antigravity / Gemini 3.8 Flash | Results UI & Fixtures | Implemented `components/RiskDial.tsx`, `components/CheckCard.tsx`, `components/ResultsSection.tsx`, and `fixtures/demo-cases.ts`. | Verified dial renders 0-100 without percent sign, and demo banner displays. | Browser visual inspection at desktop, 390px, and 320px passed. |
+| 2026-10-10 22:30 IST | Antigravity / Gemini 3.8 Flash | Failure Testing & Security | Created `tests/failure-and-edge-cases.test.ts`, ran bundle secret scanner and zero-emoji verification. | Verified prompt injection resistance and client bundle free of secrets. | All 30 Vitest tests passed; zero emojis detected. |
+
+## Template preparation
+
+On 10 October 2026, Codex prepared this documentation template from the organizer's supplied rules and checked the linked Luma page for the event name and dates. This covered `README.md`, `RULES.md`, `AGENTS.md`, `CHANGELOG.md`, `AI_USAGE.md`, `SUBMISSION.md`, `.gitignore`, and the pull request checklist. Agent validation covered local links, event consistency, required documents, and diff whitespace; organizer review is pending.

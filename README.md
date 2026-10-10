@@ -4,6 +4,8 @@ A web application that detects recruitment fraud patterns, suspicious payment co
 
 Built with Next.js App Router, React, TypeScript, Zod, and Vitest. Deployable on Vercel.
 
+**[Submission Details](SUBMISSION.md)** · **[AI Usage Log](AI_USAGE.md)** · **[Changelog](CHANGELOG.md)** · **[Event Rules](RULES.md)** · **[Specifications](docs/PROJECT_BRIEF.md)**
+
 ---
 
 ## Overview
