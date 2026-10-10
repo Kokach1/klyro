@@ -319,7 +319,7 @@ export async function checkRegistration(
             title: item.title,
             url: item.link,
             quote: page.text.slice(0, 300),
-            provider: "registry_read",
+            provider: "jina_reader",
             publishedAt: null,
             retrievedAt: now,
             classification: "corroboration",

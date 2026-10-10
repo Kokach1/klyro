@@ -11,6 +11,7 @@ export interface AppEnv {
   WHOISXML_API_KEY?: string;
   OPENAI_MODEL?: string;
   OPENCORPORATES_API_KEY?: string;
+  JINA_API_KEY?: string;
 }
 
 function extractApiKeyFromPossibleUrl(keyRaw?: string): string | undefined {
@@ -58,5 +59,6 @@ export function getServerEnv(): AppEnv {
     ),
     OPENAI_MODEL: process.env.OPENAI_MODEL?.trim() || undefined,
     OPENCORPORATES_API_KEY: process.env.OPENCORPORATES_API_KEY?.trim() || undefined,
+    JINA_API_KEY: process.env.JINA_API_KEY?.trim() || undefined,
   };
 }

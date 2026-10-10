@@ -178,7 +178,7 @@ export async function checkComplaints(
           title: item.title,
           url: item.link,
           quote: page.text.slice(0, 250),
-          provider: "web_read",
+          provider: "jina_reader",
           publishedAt: null,
           retrievedAt: now,
           classification: "allegation",

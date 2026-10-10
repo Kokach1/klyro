@@ -6,7 +6,7 @@ import {
   Signal,
 } from "../contracts";
 import { searchGoogleWithSerpApi, SerpApiError } from "../providers/serpapi";
-import { isAlwaysBlockedDomain } from "../safe-fetch";
+import { isAlwaysBlockedDomain, SafeFetchResult } from "../safe-fetch";
 import { fetchCandidatePages, selectCandidatePages } from "./candidate-pages";
 import { buildCompanySearchQuery } from "./search-query";
 
@@ -205,7 +205,8 @@ export async function checkCareersMatch(
   }
 
   const candidates = selectCandidatePages(prioritizedResults);
-  let matchingPageFound = false;
+  let matchingEmployerPage: { item: (typeof prioritizedResults)[number]; page: SafeFetchResult } | null = null;
+  let matchingAggregatorPage: { item: (typeof prioritizedResults)[number]; page: SafeFetchResult } | null = null;
   let confirmedDomain = false;
   let pagesRead = 0;
 
@@ -239,10 +240,11 @@ export async function checkCareersMatch(
           companyLower ? pageTextLower.includes(companyLower) || titleLower.includes(companyLower) : true;
 
         if (hasRole && hasCompany) {
-          matchingPageFound = true;
-          if (cleanDomain && item.link.toLowerCase().includes(cleanDomain)) {
-            confirmedDomain = true;
-          }
+          const isEmployerPage = cleanDomain
+            ? item.link.toLowerCase().includes(cleanDomain)
+            : false;
+          const isAts = EMPLOYER_ATS_DOMAINS.some((ats) => item.link.toLowerCase().includes(ats));
+          const isOwnPage = isEmployerPage || isAts;
 
           evidenceList.push({
             id: `ev-car-page-${evidenceList.length + 1}`,
@@ -250,19 +252,28 @@ export async function checkCareersMatch(
             title: item.title,
             url: item.link,
             quote: page.text.slice(0, 300),
-            provider: "web_read",
+            provider: "jina_reader",
             publishedAt: null,
             retrievedAt: now,
             classification: "corroboration",
           });
-          break;
+
+          if (isOwnPage) {
+            matchingEmployerPage = { item, page };
+            if (isEmployerPage) {
+              confirmedDomain = true;
+            }
+            break; // Found official employer page - highest tier (verified)
+          } else if (!matchingAggregatorPage) {
+            matchingAggregatorPage = { item, page };
+          }
         }
       }
     }
   }
 
-  // Outcome 1: Verified (official page directly read)
-  if (matchingPageFound) {
+  // Outcome 1: Verified (successful Jina read of the employer's OWN page)
+  if (matchingEmployerPage) {
     return {
       id: "careers_match",
       status: "completed",
@@ -290,20 +301,22 @@ export async function checkCareersMatch(
     };
   }
 
-  // Outcome 2: Corroborated (blocked/failed page fetch falls back to search tier)
+  // Outcome 2: Corroborated (successful Jina read of an aggregator, or search snippet fallback)
   // Wording: 'Listing found via search (page not directly read)'
-  if (snippetMatch) {
-    evidenceList.push({
-      id: `ev-car-snip-${evidenceList.length + 1}`,
-      kind: "search_snippet",
-      title: snippetMatch.item.title,
-      url: snippetMatch.item.link,
-      quote: snippetMatch.item.snippet || null,
-      provider: "SerpAPI",
-      publishedAt: null,
-      retrievedAt: now,
-      classification: "corroboration",
-    });
+  if (matchingAggregatorPage || snippetMatch) {
+    if (!matchingAggregatorPage && snippetMatch) {
+      evidenceList.push({
+        id: `ev-car-snip-${evidenceList.length + 1}`,
+        kind: "search_snippet",
+        title: snippetMatch.item.title,
+        url: snippetMatch.item.link,
+        quote: snippetMatch.item.snippet || null,
+        provider: "SerpAPI",
+        publishedAt: null,
+        retrievedAt: now,
+        classification: "corroboration",
+      });
+    }
 
     return {
       id: "careers_match",
@@ -319,7 +332,7 @@ export async function checkCareersMatch(
       signals: [],
       facts: {
         domain,
-        domainOfficialConfirmed: snippetMatch.isEmployerDomain,
+        domainOfficialConfirmed: matchingAggregatorPage ? false : snippetMatch?.isEmployerDomain ?? false,
         domainResponse: "responds",
         domainCreatedAt: null,
         domainAgeDays: null,

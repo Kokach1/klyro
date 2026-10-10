@@ -1,5 +1,6 @@
 import { SerpApiOrganicResult } from "../providers/serpapi";
-import { SafeFetchResult, isAlwaysBlockedDomain, safeFetchUrl } from "../safe-fetch";
+import { SafeFetchResult, isAlwaysBlockedDomain } from "../safe-fetch";
+import { fetchWithJinaReader } from "../providers/jina";
 
 export const MAX_CANDIDATE_PAGES = 3;
 
@@ -24,10 +25,8 @@ export async function fetchCandidatePages(
   return Promise.all(
     candidates.map(async (item) => {
       try {
-        const page = await safeFetchUrl(item.link, {
+        const page = await fetchWithJinaReader(item.link, {
           timeoutMs: 8000,
-          maxBytes: 1024 * 512,
-          maxRedirects: 3,
           maxTextChars: 8000,
         });
         return { item, page };

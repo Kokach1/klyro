@@ -4,6 +4,19 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+### 2026-10-11T04:12:00+05:30 — Route page reads through Jina Reader with employer vs aggregator tiers
+
+- Changed:
+  - `lib/providers/jina.ts`: Implemented `fetchWithJinaReader` routing outbound URL reads through `https://r.jina.ai/<targetUrl>` with 8s timeout, untrusted-content sanitization (`sanitizeHtmlToText`), and text clamping; added `JINA_API_KEY` bearer token support (free tier operates without key; key in `.env.local` raises rate limit).
+  - `lib/env.ts` & `.env.example`: Added optional `JINA_API_KEY` configuration.
+  - `lib/checks/candidate-pages.ts`: Updated `fetchCandidatePages` to fetch candidate pages via `fetchWithJinaReader` instead of direct server fetches.
+  - `lib/checks/careers-match.ts`: Maintained 3-tier outcomes: a successful Jina read of the employer's OWN page counts as `verified`, while an aggregator read (or snippet fallback) counts as `corroborated`.
+  - `lib/checks/registration.ts` & `lib/checks/complaints.ts`: Updated evidence provider attribution to `jina_reader`.
+  - `tests/jina-reader.test.ts`: Added 6 unit tests covering Jina URL routing, Authorization header with key, free tier without key, untrusted-content clamping, rate limiting (429) handling, and employer own page vs aggregator verification tiers.
+- Why: Allow outbound page inspection to bypass anti-scraping walls and JavaScript rendering restrictions reliably while preserving honest evidence tiering between employer-owned domains and third-party aggregators.
+- Validation: All 59 Vitest unit tests passed (`npm test`); Next.js production build (`npm run build`) succeeded with 0 errors.
+- Limitations: If Jina free tier hits rate limits without an API key, candidate reads gracefully fall back to search snippet corroboration.
+
 ### 2026-10-11T03:51:00+05:30 — Three-tier evidence outcomes and search-based corroboration fallback
 
 - Changed:
