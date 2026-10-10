@@ -36,6 +36,7 @@ export async function checkComplaints(
     return {
       id: "complaints",
       status: "inconclusive",
+      tier: "inconclusive",
       reasonCode: "missing_data",
       reason: "No company name was available to perform complaints search.",
       finding: "Cannot search for complaints or reviews without a company name.",
@@ -69,6 +70,7 @@ export async function checkComplaints(
     return {
       id: "complaints",
       status: "unavailable",
+      tier: "inconclusive",
       reasonCode,
       reason: err.message || "Failed to query complaints sources.",
       finding: `Complaints check unavailable: ${err.message}`,
@@ -107,6 +109,7 @@ export async function checkComplaints(
     return {
       id: "complaints",
       status: "completed",
+      tier: "verified",
       reasonCode: null,
       reason: null,
       finding: "No relevant complaints found in the sources checked.",
@@ -133,7 +136,7 @@ export async function checkComplaints(
   const candidates = selectCandidatePages(relevantResults);
   if (candidates.length === 0) {
     return {
-      id: "complaints", status: "inconclusive", reasonCode: "blocked_page",
+      id: "complaints", status: "inconclusive", tier: "inconclusive", reasonCode: "blocked_page",
       reason: "No complaint candidate pages passed the domain filter.",
       finding: "Search found mentions, but none could be checked on a fetchable source.",
       whyItMatters: "Search snippets alone cannot establish a complaint pattern.",
@@ -196,6 +199,7 @@ export async function checkComplaints(
     return {
       id: "complaints",
       status: "completed",
+      tier: "verified",
       reasonCode: null,
       reason: null,
       finding: `Multiple independent sources report recruitment complaints or scam allegations regarding "${company}".`,
@@ -223,6 +227,7 @@ export async function checkComplaints(
   return {
     id: "complaints",
     status: "inconclusive",
+    tier: "inconclusive",
     reasonCode: "ambiguous_identity",
     reason: "Found isolated or unverified mentions, but could not establish 2+ independent relevant complaint sources.",
     finding: `Isolated mention found regarding "${company}", but insufficient independent corroboration to confirm a complaint pattern.`,

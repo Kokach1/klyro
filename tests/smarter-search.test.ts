@@ -3,6 +3,7 @@ import { isAlwaysBlockedDomain } from "../lib/safe-fetch";
 import { getCareersPagePriority, checkCareersMatch } from "../lib/checks/careers-match";
 import { checkComplaints } from "../lib/checks/complaints";
 import { selectCandidatePages } from "../lib/checks/candidate-pages";
+import * as candidatePages from "../lib/checks/candidate-pages";
 import {
   getRegistryPriority,
   matchesLegalName,
@@ -133,11 +134,12 @@ describe("Smarter Careers and Registry Search", () => {
       const result = await checkRegistration(claims);
       expect(searchSpy).toHaveBeenCalled();
       expect(result.status).toBe("completed");
+      expect(result.tier).toBe("corroborated");
       expect(result.facts.identityMatch).toBe("high");
       expect(result.facts.cin).toBe("L22210MH1995PLC084781");
       expect(result.facts.legalName).toBe("TATA CONSULTANCY SERVICES LIMITED");
       expect(result.evidence.some((e) => e.classification === "corroboration")).toBe(true);
-      expect(result.finding).toContain("L22210MH1995PLC084781");
+      expect(result.finding).toBe("Entity found in Indian registry (search-based)");
 
       searchSpy.mockRestore();
     });
@@ -166,9 +168,11 @@ describe("Smarter Careers and Registry Search", () => {
 
       const result = await checkRegistration(claims);
       expect(result.status).toBe("completed");
+      expect(result.tier).toBe("corroborated");
       expect(result.facts.identityMatch).toBe("high");
       expect(result.facts.cin).toBe("L85110KA1981PLC013115");
       expect(result.evidence.some((e) => e.classification === "corroboration")).toBe(true);
+      expect(result.finding).toBe("Entity found in Indian registry (search-based)");
 
       searchSpy.mockRestore();
     });
@@ -266,6 +270,219 @@ describe("Smarter Careers and Registry Search", () => {
       expect(result.status).toBe("inconclusive");
       expect(result.reasonCode).toBe("blocked_page");
       searchSpy.mockRestore();
+    });
+  });
+
+  describe("Evidence Tiers (Verified, Corroborated, Inconclusive)", () => {
+    it("registration: returns verified tier when official registry page is read directly", async () => {
+      const searchSpy = vi.spyOn(serpapi, "searchGoogleWithSerpApi").mockResolvedValueOnce([
+        {
+          title: "Tata Consultancy Services Limited - MCA Profile",
+          link: "https://www.thecompanycheck.com/company/tata-consultancy-services-limited",
+          snippet: "Official company details for Tata Consultancy Services.",
+        },
+      ]);
+      const fetchSpy = vi.spyOn(candidatePages, "fetchCandidatePages").mockResolvedValueOnce([
+        {
+          item: {
+            title: "Tata Consultancy Services Limited - MCA Profile",
+            link: "https://www.thecompanycheck.com/company/tata-consultancy-services-limited",
+            snippet: "Official company details for Tata Consultancy Services.",
+          },
+          page: {
+            url: "https://www.thecompanycheck.com/company/tata-consultancy-services-limited",
+            text: "Tata Consultancy Services Limited is registered with CIN L22210MH1995PLC084781 in Mumbai.",
+            status: 200,
+          },
+        },
+      ]);
+
+      const result = await checkRegistration({
+        companyName: "Tata Consultancy Services",
+        role: "Engineer",
+        salary: null,
+        location: "Mumbai, India",
+        contacts: [],
+        links: [],
+        employerDomain: "tcs.com",
+        claimedOperatingYears: null,
+        feeClaims: [],
+      });
+
+      expect(result.status).toBe("completed");
+      expect(result.tier).toBe("verified");
+      expect(result.facts.cin).toBe("L22210MH1995PLC084781");
+      expect(result.finding).toContain("L22210MH1995PLC084781");
+
+      searchSpy.mockRestore();
+      fetchSpy.mockRestore();
+    });
+
+    it("registration: falls back to corroborated search tier with exact wording when page fetch fails", async () => {
+      const searchSpy = vi.spyOn(serpapi, "searchGoogleWithSerpApi").mockResolvedValueOnce([
+        {
+          title: "Acme Innovations Private Limited - Company Details",
+          link: "https://www.thecompanycheck.com/company/acme-innovations",
+          snippet: "Acme Innovations Private Limited is incorporated with CIN U72200KA2020PTC123456.",
+        },
+      ]);
+      // Simulate page fetch failing (network error / blocked server)
+      const fetchSpy = vi.spyOn(candidatePages, "fetchCandidatePages").mockResolvedValueOnce([
+        {
+          item: {
+            title: "Acme Innovations Private Limited - Company Details",
+            link: "https://www.thecompanycheck.com/company/acme-innovations",
+            snippet: "Acme Innovations Private Limited is incorporated with CIN U72200KA2020PTC123456.",
+          },
+          page: null,
+        },
+      ]);
+
+      const result = await checkRegistration({
+        companyName: "Acme Innovations",
+        role: "Engineer",
+        salary: null,
+        location: "Bengaluru, India",
+        contacts: [],
+        links: [],
+        employerDomain: "acme.com",
+        claimedOperatingYears: null,
+        feeClaims: [],
+      });
+
+      expect(result.status).toBe("completed");
+      expect(result.tier).toBe("corroborated");
+      expect(result.finding).toBe("Entity found in Indian registry (search-based)");
+      expect(result.facts.cin).toBe("U72200KA2020PTC123456");
+
+      searchSpy.mockRestore();
+      fetchSpy.mockRestore();
+    });
+
+    it("careers: returns verified tier when employer careers page is directly read", async () => {
+      const searchSpy = vi.spyOn(serpapi, "searchGoogleWithSerpApi").mockResolvedValueOnce([
+        {
+          title: "Software Engineer at Acme Corp",
+          link: "https://acmecorp.com/careers/software-engineer",
+          snippet: "Apply for Software Engineer role at Acme Corp.",
+        },
+      ]);
+      const fetchSpy = vi.spyOn(candidatePages, "fetchCandidatePages").mockResolvedValueOnce([
+        {
+          item: {
+            title: "Software Engineer at Acme Corp",
+            link: "https://acmecorp.com/careers/software-engineer",
+            snippet: "Apply for Software Engineer role at Acme Corp.",
+          },
+          page: {
+            url: "https://acmecorp.com/careers/software-engineer",
+            text: "Acme Corp is hiring a full-time Software Engineer. Competitive salary.",
+            status: 200,
+          },
+        },
+      ]);
+
+      const result = await checkCareersMatch({
+        companyName: "Acme Corp",
+        role: "Software Engineer",
+        salary: null,
+        location: "Bengaluru, India",
+        contacts: [],
+        links: [],
+        employerDomain: "acmecorp.com",
+        claimedOperatingYears: null,
+        feeClaims: [],
+      });
+
+      expect(result.status).toBe("completed");
+      expect(result.tier).toBe("verified");
+      expect(result.facts.roleMatched).toBe(true);
+      expect(result.finding).toContain("Verified matching job posting found on official careers portal");
+
+      searchSpy.mockRestore();
+      fetchSpy.mockRestore();
+    });
+
+    it("careers: falls back to corroborated search tier when employer page fetch fails/blocked", async () => {
+      const searchSpy = vi.spyOn(serpapi, "searchGoogleWithSerpApi").mockResolvedValueOnce([
+        {
+          title: "Acme Corp - Careers - Software Engineer",
+          link: "https://acmecorp.com/careers/software-engineer",
+          snippet: "Acme Corp is seeking a Software Engineer to join our platform team.",
+        },
+      ]);
+      // Simulate page fetch blocked/failed
+      const fetchSpy = vi.spyOn(candidatePages, "fetchCandidatePages").mockResolvedValueOnce([
+        {
+          item: {
+            title: "Acme Corp - Careers - Software Engineer",
+            link: "https://acmecorp.com/careers/software-engineer",
+            snippet: "Acme Corp is seeking a Software Engineer to join our platform team.",
+          },
+          page: null,
+        },
+      ]);
+
+      const result = await checkCareersMatch({
+        companyName: "Acme Corp",
+        role: "Software Engineer",
+        salary: null,
+        location: "Bengaluru, India",
+        contacts: [],
+        links: [],
+        employerDomain: "acmecorp.com",
+        claimedOperatingYears: null,
+        feeClaims: [],
+      });
+
+      expect(result.status).toBe("completed");
+      expect(result.tier).toBe("corroborated");
+      expect(result.finding).toBe("Listing found via search (page not directly read)");
+      expect(result.facts.roleMatched).toBe(true);
+
+      searchSpy.mockRestore();
+      fetchSpy.mockRestore();
+    });
+
+    it("careers: corroborates listing from infopark.in/jobs search snippet naming company and role", async () => {
+      const searchSpy = vi.spyOn(serpapi, "searchGoogleWithSerpApi").mockResolvedValueOnce([
+        {
+          title: "Software Engineer at TechKerala - Infopark Jobs",
+          link: "https://infopark.in/jobs/techkerala/software-engineer",
+          snippet: "TechKerala is hiring a Software Engineer at Infopark Kochi.",
+        },
+      ]);
+      // Page fetch blocked/fails
+      const fetchSpy = vi.spyOn(candidatePages, "fetchCandidatePages").mockResolvedValueOnce([
+        {
+          item: {
+            title: "Software Engineer at TechKerala - Infopark Jobs",
+            link: "https://infopark.in/jobs/techkerala/software-engineer",
+            snippet: "TechKerala is hiring a Software Engineer at Infopark Kochi.",
+          },
+          page: null,
+        },
+      ]);
+
+      const result = await checkCareersMatch({
+        companyName: "TechKerala",
+        role: "Software Engineer",
+        salary: null,
+        location: "Kochi, Kerala",
+        contacts: [],
+        links: [],
+        employerDomain: "techkerala.com",
+        claimedOperatingYears: null,
+        feeClaims: [],
+      });
+
+      expect(result.status).toBe("completed");
+      expect(result.tier).toBe("corroborated");
+      expect(result.finding).toBe("Listing found via search (page not directly read)");
+      expect(result.facts.roleMatched).toBe(true);
+
+      searchSpy.mockRestore();
+      fetchSpy.mockRestore();
     });
   });
 });

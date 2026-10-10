@@ -147,6 +147,7 @@ export async function checkCareersMatch(
     return {
       id: "careers_match",
       status: "completed",
+      tier: "inconclusive",
       reasonCode: null,
       reason: null,
       finding: "No matching role found in the sources checked. It may be expired, unlisted or inaccessible.",
@@ -177,79 +178,95 @@ export async function checkCareersMatch(
       getCareersPagePriority(b.link, cleanDomain)
   );
 
-  const candidates = selectCandidatePages(prioritizedResults);
-  if (candidates.length === 0) {
-    return {
-      id: "careers_match",
-      status: "inconclusive",
-      reasonCode: "blocked_page",
-      reason: "No candidate careers pages passed the domain filter.",
-      finding: "Search results did not include a fetchable careers page.",
-      whyItMatters: "Only fetchable employer and careers sources can corroborate an active vacancy.",
-      checkedAt: now,
-      evidence: [],
-      signals: [],
-      facts: { domain, domainOfficialConfirmed: false, domainResponse: null, domainCreatedAt: null, domainAgeDays: null, domainYoung: null, roleMatched: null, legalName: null, cin: null, identityMatch: "ambiguous" },
-    };
+  // Check if any snippet from employer's own domain or infopark.in/jobs names company + role
+  let snippetMatch: { item: (typeof prioritizedResults)[number]; isEmployerDomain: boolean } | null = null;
+  const roleLower = role.toLowerCase();
+  const companyLower = company.toLowerCase();
+
+  for (const item of prioritizedResults) {
+    const lowerLink = item.link.toLowerCase();
+    const isEmployerDomain = Boolean(cleanDomain && lowerLink.includes(cleanDomain));
+    const isInfopark = lowerLink.includes("infopark.in/jobs");
+    const isAts = EMPLOYER_ATS_DOMAINS.some((ats) => lowerLink.includes(ats));
+
+    if (!isEmployerDomain && !isInfopark && !isAts) continue;
+
+    const snippetText = `${item.title} ${item.snippet || ""}`.toLowerCase();
+    const hasRole = roleLower ? snippetText.includes(roleLower) : false;
+    const hasCompany = companyLower ? snippetText.includes(companyLower) : true;
+
+    if (hasRole && hasCompany) {
+      snippetMatch = {
+        item,
+        isEmployerDomain,
+      };
+      break;
+    }
   }
 
-  const fetchedCandidates = await fetchCandidatePages(candidates);
-  const pagesRead = fetchedCandidates.filter((candidate) => candidate.page !== null).length;
+  const candidates = selectCandidatePages(prioritizedResults);
   let matchingPageFound = false;
   let confirmedDomain = false;
+  let pagesRead = 0;
 
-  for (const { item, page } of fetchedCandidates) {
-    // Record search snippet lead
-    evidenceList.push({
-      id: `ev-car-snip-${evidenceList.length + 1}`,
-      kind: "search_snippet",
-      title: item.title,
-      url: item.link,
-      quote: item.snippet || null,
-      provider: "SerpAPI",
-      publishedAt: null,
-      retrievedAt: now,
-      classification: "unknown",
-    });
+  if (candidates.length > 0) {
+    const fetchedCandidates = await fetchCandidatePages(candidates);
+    pagesRead = fetchedCandidates.filter((candidate) => candidate.page !== null).length;
 
-    if (page) {
-      const pageTextLower = page.text.toLowerCase();
-      const titleLower = item.title.toLowerCase();
-      const roleLower = role.toLowerCase();
-      const companyLower = company.toLowerCase();
+    for (const { item, page } of fetchedCandidates) {
+      // Record search snippet lead
+      evidenceList.push({
+        id: `ev-car-snip-${evidenceList.length + 1}`,
+        kind: "search_snippet",
+        title: item.title,
+        url: item.link,
+        quote: item.snippet || null,
+        provider: "SerpAPI",
+        publishedAt: null,
+        retrievedAt: now,
+        classification: "unknown",
+      });
 
-      // Check if role and company match on this page
-      const hasRole =
-        (roleLower && pageTextLower.includes(roleLower)) ||
-        (roleLower && titleLower.includes(roleLower));
-      const hasCompany =
-        companyLower ? pageTextLower.includes(companyLower) || titleLower.includes(companyLower) : true;
+      if (page) {
+        const pageTextLower = page.text.toLowerCase();
+        const titleLower = item.title.toLowerCase();
 
-      if (hasRole && hasCompany) {
-        matchingPageFound = true;
-        if (cleanDomain && item.link.toLowerCase().includes(cleanDomain)) {
-          confirmedDomain = true;
+        // Check if role and company match on this page
+        const hasRole =
+          (roleLower && pageTextLower.includes(roleLower)) ||
+          (roleLower && titleLower.includes(roleLower));
+        const hasCompany =
+          companyLower ? pageTextLower.includes(companyLower) || titleLower.includes(companyLower) : true;
+
+        if (hasRole && hasCompany) {
+          matchingPageFound = true;
+          if (cleanDomain && item.link.toLowerCase().includes(cleanDomain)) {
+            confirmedDomain = true;
+          }
+
+          evidenceList.push({
+            id: `ev-car-page-${evidenceList.length + 1}`,
+            kind: "page",
+            title: item.title,
+            url: item.link,
+            quote: page.text.slice(0, 300),
+            provider: "web_read",
+            publishedAt: null,
+            retrievedAt: now,
+            classification: "corroboration",
+          });
+          break;
         }
-
-        evidenceList.push({
-          id: `ev-car-page-${evidenceList.length + 1}`,
-          kind: "page",
-          title: item.title,
-          url: item.link,
-          quote: page.text.slice(0, 300),
-          provider: "web_read",
-          publishedAt: null,
-          retrievedAt: now,
-          classification: "corroboration",
-        });
       }
     }
   }
 
+  // Outcome 1: Verified (official page directly read)
   if (matchingPageFound) {
     return {
       id: "careers_match",
       status: "completed",
+      tier: "verified",
       reasonCode: null,
       reason: null,
       finding: `Verified matching job posting found on official careers portal (${role} at ${company || "employer"}).`,
@@ -273,7 +290,49 @@ export async function checkCareersMatch(
     };
   }
 
-  // If we read pages but found no matching vacancy
+  // Outcome 2: Corroborated (blocked/failed page fetch falls back to search tier)
+  // Wording: 'Listing found via search (page not directly read)'
+  if (snippetMatch) {
+    evidenceList.push({
+      id: `ev-car-snip-${evidenceList.length + 1}`,
+      kind: "search_snippet",
+      title: snippetMatch.item.title,
+      url: snippetMatch.item.link,
+      quote: snippetMatch.item.snippet || null,
+      provider: "SerpAPI",
+      publishedAt: null,
+      retrievedAt: now,
+      classification: "corroboration",
+    });
+
+    return {
+      id: "careers_match",
+      status: "completed",
+      tier: "corroborated",
+      reasonCode: null,
+      reason: null,
+      finding: "Listing found via search (page not directly read)",
+      whyItMatters:
+        "Search results from official sources corroborate the vacancy even when direct page fetching is restricted.",
+      checkedAt: now,
+      evidence: evidenceList,
+      signals: [],
+      facts: {
+        domain,
+        domainOfficialConfirmed: snippetMatch.isEmployerDomain,
+        domainResponse: "responds",
+        domainCreatedAt: null,
+        domainAgeDays: null,
+        domainYoung: null,
+        roleMatched: true,
+        legalName: null,
+        cin: null,
+        identityMatch: "high",
+      },
+    };
+  }
+
+  // Outcome 3: Vacancy not found after reading pages
   if (pagesRead > 0) {
     signals.push({
       code: "careers_not_found",
@@ -285,6 +344,7 @@ export async function checkCareersMatch(
     return {
       id: "careers_match",
       status: "completed",
+      tier: "inconclusive",
       reasonCode: null,
       reason: null,
       finding: "No matching role found in the sources checked. It may be expired, unlisted or inaccessible.",
@@ -308,10 +368,11 @@ export async function checkCareersMatch(
     };
   }
 
-  // Only snippets available, pages couldn't be read
+  // Outcome 4: Inconclusive (pages couldn't be read and no official search snippet matched)
   return {
     id: "careers_match",
     status: "inconclusive",
+    tier: "inconclusive",
     reasonCode: "blocked_page",
     reason: "Candidate pages could not be accessed directly; search snippets alone are inconclusive.",
     finding: "Search discovered candidate results but individual pages could not be verified directly.",

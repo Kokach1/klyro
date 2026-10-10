@@ -4,6 +4,19 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+### 2026-10-11T03:51:00+05:30 — Three-tier evidence outcomes and search-based corroboration fallback
+
+- Changed:
+  - `lib/contracts.ts`: Added `CheckTierSchema = z.enum(["verified", "corroborated", "inconclusive"])` and added `tier` to `CheckResultSchema`.
+  - `lib/checks/registration.ts`: Implemented 3 check outcomes: `verified` (official registry page directly read), `corroborated` (exact legal name + CIN or incorporation details in search snippet when page fetch fails/blocked), and `inconclusive`. Assigned exact finding wording `"Entity found in Indian registry (search-based)"` for corroborated results.
+  - `lib/checks/careers-match.ts`: Implemented 3 check outcomes: `verified` (official careers portal page directly read), `corroborated` (snippet from employer domain or `infopark.in/jobs` naming company + role when page fetch fails/blocked), and `inconclusive`. Assigned exact finding wording `"Listing found via search (page not directly read)"` for corroborated results.
+  - `lib/checks/message-flags.ts`, `lib/checks/domain-age.ts`, `lib/checks/complaints.ts`: Explicitly assigned `verified` or `inconclusive` tiers based on outcome.
+  - `components/CheckCard.tsx`: Displayed honest tier difference in the UI: `corroborated` renders an amber middle card (`borderLeft: 8px solid var(--color-caution)`, `boxShadow: 6px 6px 0 var(--color-caution)`, warm background `#FFFDF2`) with an amber `Corroborated (search-based)` badge and `"Search-based evidence • Target page was not directly read"` banner, never displaying the green `badge-safe` verified style.
+  - `tests/smarter-search.test.ts`: Added 5 unit tests validating the 3 evidence tiers (`verified`, `corroborated`, `inconclusive`), exact wording strings, and fallback behavior when page fetches are blocked.
+- Why: Provide honest, transparent verification tiers so users clearly distinguish between official pages directly retrieved by the scanner and search-snippet corroboration from restricted or blocking domains.
+- Validation: All 53 Vitest unit tests passed (`npm test`); Next.js production build (`npm run build`) succeeded with 0 errors.
+- Limitations: When external sites block both direct server fetches and do not return indexable snippets, checks remain inconclusive.
+
 ### 2026-10-11T03:14:06+05:30 — Quote company searches and fetch candidate pages concurrently
 
 - Changed: Added shared search-query and candidate-page helpers; updated careers, registration, and complaints checks to build their SerpAPI query from the extracted company name in double quotes, allow 7 seconds for SerpAPI, select at most three non-blocked candidates, and fetch those pages concurrently with an 8-second limit. Explicitly kept `infopark.in/jobs` eligible for fetching.

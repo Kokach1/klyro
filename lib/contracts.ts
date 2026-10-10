@@ -89,6 +89,13 @@ export const CheckStatusSchema = z.enum([
 ]);
 export type CheckStatus = z.infer<typeof CheckStatusSchema>;
 
+export const CheckTierSchema = z.enum([
+  "verified",
+  "corroborated",
+  "inconclusive",
+]);
+export type CheckTier = z.infer<typeof CheckTierSchema>;
+
 export const ReasonCodeSchema = z.enum([
   "missing_key",
   "timeout",
@@ -173,6 +180,7 @@ export type CheckFacts = z.infer<typeof CheckFactsSchema>;
 export const CheckResultSchema = z.object({
   id: CheckIdSchema,
   status: CheckStatusSchema,
+  tier: CheckTierSchema.optional().nullable(),
   reasonCode: ReasonCodeSchema.nullable(),
   reason: z.string().nullable(),
   finding: z.string(),

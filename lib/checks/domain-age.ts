@@ -77,6 +77,7 @@ export async function checkDomainAge(
     return {
       id: "domain_age",
       status: "not_applicable",
+      tier: "inconclusive",
       reasonCode: "no_domain",
       reason: "No employer domain was provided or discovered in the posting links.",
       finding: "No employer domain available to verify registration age.",
@@ -226,6 +227,7 @@ export async function checkDomainAge(
   return {
     id: "domain_age",
     status,
+    tier: status === "completed" ? "verified" : "inconclusive",
     reasonCode,
     reason,
     finding,

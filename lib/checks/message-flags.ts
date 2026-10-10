@@ -278,6 +278,7 @@ export function checkMessageFlags(
   return {
     id: "message_flags",
     status: "completed",
+    tier: "verified",
     reasonCode: null,
     reason: null,
     finding,

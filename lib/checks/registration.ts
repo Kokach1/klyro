@@ -12,6 +12,20 @@ import { buildCompanySearchQuery } from "./search-query";
 // Standard 21-character Indian Corporate Identification Number pattern
 const CIN_REGEX = /[UL]\d{5}[A-Z]{2}\d{4}[A-Z]{3}\d{6}/i;
 
+const INCORPORATION_PATTERNS = [
+  /incorporated\s+(on|in)/i,
+  /date\s+of\s+incorporation/i,
+  /registration\s+no/i,
+  /registrar\s+of\s+companies/i,
+  /\bROC\s+[A-Za-z]+/i,
+  /company\s+status\s*:\s*active/i,
+  /corporate\s+identification\s+number/i,
+];
+
+export function hasIncorporationDetails(text: string): boolean {
+  return INCORPORATION_PATTERNS.some((pat) => pat.test(text));
+}
+
 // Registry sources prioritized for Indian corporate registration
 export const PREFERRED_REGISTRY_DOMAINS = [
   "mca.gov.in",
@@ -199,6 +213,7 @@ export async function checkRegistration(
     return {
       id: "registration",
       status: "completed",
+      tier: "inconclusive",
       reasonCode: null,
       reason: null,
       finding: `No public company registration or CIN found for "${company}" in sources checked.`,
@@ -226,6 +241,7 @@ export async function checkRegistration(
   let discoveredCin: string | null = null;
   let discoveredLegalName: string | null = null;
   let identityMatch: "high" | "ambiguous" | "none" | "not_applicable" = "ambiguous";
+  let snippetCorroborated = false;
 
   // Prioritize search results: MCA -> ZaubaCorp/TheCompanyCheck/Vakilsearch -> other -> skip-list last
   const prioritizedResults = [...searchResults].sort(
@@ -238,12 +254,14 @@ export async function checkRegistration(
     // Extract CIN from snippet or title
     const snippetCinMatch = CIN_REGEX.exec(combinedSnippetText);
     const snippetCin = snippetCinMatch ? snippetCinMatch[0].toUpperCase() : null;
+    const hasIncorp = hasIncorporationDetails(combinedSnippetText);
 
-    // Snippets carry CIN - treat snippet CIN + exact legal name as corroboration since MCA blocks direct fetch
-    if (snippetCin && matchesLegalName(combinedSnippetText, company)) {
-      discoveredCin = snippetCin;
+    // Snippet with exact legal name + CIN or incorporation details = corroborated
+    if ((snippetCin || hasIncorp) && matchesLegalName(combinedSnippetText, company)) {
+      if (snippetCin) discoveredCin = snippetCin;
       discoveredLegalName = extractCandidateLegalName(item.title, company);
       identityMatch = "high";
+      snippetCorroborated = true;
 
       evidenceList.push({
         id: `ev-reg-snip-${evidenceList.length + 1}`,
@@ -272,65 +290,52 @@ export async function checkRegistration(
       classification: "unknown",
     });
 
-    // Check if snippet contains a CIN lead for ambiguous records
     if (!discoveredCin && snippetCin) {
       discoveredCin = snippetCin;
     }
   }
 
-  if (identityMatch === "high" && discoveredCin) {
-    return {
-      id: "registration", status: "completed", reasonCode: null, reason: null,
-      finding: `Found matching registered entity: ${discoveredLegalName || company} (CIN: ${discoveredCin}).`,
-      whyItMatters: "Corroborating a registered corporate entity verifies that a legal company exists in registry records.",
-      checkedAt: now, evidence: evidenceList, signals: [],
-      facts: { domain: null, domainOfficialConfirmed: false, domainResponse: null, domainCreatedAt: null, domainAgeDays: null, domainYoung: null, roleMatched: null, legalName: discoveredLegalName || company, cin: discoveredCin, identityMatch: "high" },
-    };
-  }
-
+  // Try reading candidate pages for official registry verification
   const candidates = selectCandidatePages(prioritizedResults, (url) => url.toLowerCase().includes("mca.gov.in"));
-  if (candidates.length === 0) {
-    return {
-      id: "registration", status: "inconclusive", reasonCode: "blocked_page",
-      reason: "No registry candidate pages passed the domain filter.",
-      finding: `Registry search returned no fetchable sources for "${company}".`,
-      whyItMatters: "A search result without accessible registry evidence cannot confirm a legal entity.",
-      checkedAt: now, evidence: evidenceList, signals: [],
-      facts: { domain: null, domainOfficialConfirmed: false, domainResponse: null, domainCreatedAt: null, domainAgeDays: null, domainYoung: null, roleMatched: null, legalName: null, cin: discoveredCin, identityMatch: "ambiguous" },
-    };
-  }
+  let verifiedPageMatch = false;
 
-  const fetchedCandidates = await fetchCandidatePages(candidates);
-  for (const { item, page } of fetchedCandidates) {
-    if (page) {
-      const cinMatch = CIN_REGEX.exec(page.text);
-      if (cinMatch) {
-        discoveredCin = cinMatch[0].toUpperCase();
-      }
+  if (candidates.length > 0) {
+    const fetchedCandidates = await fetchCandidatePages(candidates);
+    for (const { item, page } of fetchedCandidates) {
+      if (page) {
+        const cinMatch = CIN_REGEX.exec(page.text);
+        if (cinMatch) {
+          discoveredCin = cinMatch[0].toUpperCase();
+        }
 
-      if (matchesLegalName(page.text, company)) {
-        discoveredLegalName = extractCandidateLegalName(item.title, company);
-        identityMatch = "high";
+        if (matchesLegalName(page.text, company)) {
+          discoveredLegalName = extractCandidateLegalName(item.title, company);
+          identityMatch = "high";
+          verifiedPageMatch = true;
 
-        evidenceList.push({
-          id: `ev-reg-page-${evidenceList.length + 1}`,
-          kind: "registry",
-          title: item.title,
-          url: item.link,
-          quote: page.text.slice(0, 300),
-          provider: "registry_read",
-          publishedAt: null,
-          retrievedAt: now,
-          classification: "corroboration",
-        });
+          evidenceList.push({
+            id: `ev-reg-page-${evidenceList.length + 1}`,
+            kind: "registry",
+            title: item.title,
+            url: item.link,
+            quote: page.text.slice(0, 300),
+            provider: "registry_read",
+            publishedAt: null,
+            retrievedAt: now,
+            classification: "corroboration",
+          });
+          break;
+        }
       }
     }
   }
 
-  if (identityMatch === "high" && discoveredCin) {
+  // Outcome 1: Verified (official registry page directly read)
+  if (verifiedPageMatch && discoveredCin) {
     return {
       id: "registration",
       status: "completed",
+      tier: "verified",
       reasonCode: null,
       reason: null,
       finding: `Found matching registered entity: ${discoveredLegalName || company} (CIN: ${discoveredCin}).`,
@@ -338,7 +343,7 @@ export async function checkRegistration(
         "Corroborating a registered corporate entity verifies that a legal company exists in registry records.",
       checkedAt: now,
       evidence: evidenceList,
-      signals: [], // Positive records never subtract risk points
+      signals: [],
       facts: {
         domain: null,
         domainOfficialConfirmed: false,
@@ -354,11 +359,42 @@ export async function checkRegistration(
     };
   }
 
-  // Snippets found but identity match is ambiguous
+  // Outcome 2: Corroborated (blocked/failed page fetch falls back to search tier)
+  // Wording: 'Entity found in Indian registry (search-based)'
+  if (snippetCorroborated) {
+    return {
+      id: "registration",
+      status: "completed",
+      tier: "corroborated",
+      reasonCode: null,
+      reason: null,
+      finding: "Entity found in Indian registry (search-based)",
+      whyItMatters:
+        "Corroborating a registered corporate entity verifies that a legal company exists in registry records.",
+      checkedAt: now,
+      evidence: evidenceList,
+      signals: [],
+      facts: {
+        domain: null,
+        domainOfficialConfirmed: false,
+        domainResponse: null,
+        domainCreatedAt: null,
+        domainAgeDays: null,
+        domainYoung: null,
+        roleMatched: null,
+        legalName: discoveredLegalName || company,
+        cin: discoveredCin,
+        identityMatch: "high",
+      },
+    };
+  }
+
+  // Outcome 3: Inconclusive
   return {
     id: "registration",
     status: "inconclusive",
-    reasonCode: "ambiguous_identity",
+    tier: "inconclusive",
+    reasonCode: candidates.length === 0 ? "blocked_page" : "ambiguous_identity",
     reason: "Discovered search leads were inconclusive; entity brand-to-CIN relationship could not be verified.",
     finding: `Registry lookup returned results for "${company}" but could not corroborate a specific legal entity match.`,
     whyItMatters:

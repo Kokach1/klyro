@@ -29,6 +29,7 @@ const CHECK_TITLES: Record<CheckId, string> = {
 export function CheckCard({ check, uiState = "done" }: CheckCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const title = CHECK_TITLES[check.id] || check.id;
+  const isCorroborated = check.tier === "corroborated";
 
   // Render status badge
   const renderStatusBadge = () => {
@@ -45,12 +46,37 @@ export function CheckCard({ check, uiState = "done" }: CheckCardProps) {
       );
     }
 
+    if (isCorroborated) {
+      return (
+        <span
+          className="badge badge-caution"
+          style={{
+            backgroundColor: "var(--color-caution)",
+            color: "#000000",
+            border: "2px solid #000000",
+          }}
+        >
+          <AlertTriangleIcon size={12} color="#000000" />
+          Corroborated (search-based)
+        </span>
+      );
+    }
+
+    if (check.tier === "verified" || (!check.tier && check.status === "completed")) {
+      return (
+        <span className="badge badge-safe">
+          <CheckCircleIcon size={12} color="#000000" />
+          Verified
+        </span>
+      );
+    }
+
     switch (check.status) {
       case "completed":
         return (
           <span className="badge badge-safe">
             <CheckCircleIcon size={12} color="#000000" />
-            Completed
+            Verified
           </span>
         );
       case "inconclusive":
@@ -81,7 +107,16 @@ export function CheckCard({ check, uiState = "done" }: CheckCardProps) {
     <article
       id={`card-${check.id}`}
       className="nb-card"
-      style={{ marginBottom: "20px" }}
+      style={{
+        marginBottom: "20px",
+        ...(isCorroborated
+          ? {
+              borderLeft: "8px solid var(--color-caution)",
+              boxShadow: "6px 6px 0 var(--color-caution)",
+              backgroundColor: "#FFFDF2",
+            }
+          : {}),
+      }}
     >
       <div
         style={{
@@ -97,6 +132,28 @@ export function CheckCard({ check, uiState = "done" }: CheckCardProps) {
         </h3>
         {renderStatusBadge()}
       </div>
+
+      {/* Honest Tier Indication for Corroborated */}
+      {isCorroborated && (
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
+            fontSize: "12px",
+            fontWeight: 700,
+            backgroundColor: "var(--color-caution)",
+            border: "2px solid #000000",
+            padding: "3px 8px",
+            marginBottom: "10px",
+            boxShadow: "2px 2px 0 #000000",
+          }}
+        >
+          <span>Search-based evidence</span>
+          <span style={{ fontWeight: 400 }}>•</span>
+          <span style={{ fontWeight: 600 }}>Target page was not directly read</span>
+        </div>
+      )}
 
       {/* Main Finding */}
       <p
