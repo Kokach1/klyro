@@ -4,6 +4,13 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+### 2026-10-11T01:36:00+05:30 — Add Gemini model fallback chain and defensive credential parsing
+
+- Changed: Updated `lib/providers/gemini.ts` with a multi-model fallback chain (`gemini-3.5-flash`, `gemini-3.1-flash-lite`, `gemini-flash-latest`), updated `lib/env.ts` to defensively parse WhoisXML API keys when sample URLs are pasted, and updated `app/api/extract/route.ts` to surface detailed error causes.
+- Why: Google's `gemini-3.8-flash` preview endpoint occasionally returns HTTP 503 high demand spikes. Adding an automated fallback to stable `gemini-3.5-flash` ensures structured extraction succeeds continuously without failing user requests.
+- Validation: Verified live call to Google Gemini endpoint returning HTTP 200 with structured claims. All 35 Vitest tests and production build passed.
+- Limitations: None; server-side only.
+
 ### 2026-10-11T01:11:16+05:30 — Remove recorded demo flow and separate methodology page
 
 - Changed: Removed fixture loading, fixture data, the fixture response mode, and fixture-only result UI from `app/page.tsx`, `fixtures/demo-cases.ts`, `components/ResultsSection.tsx`, and `lib/contracts.ts`; added `app/about/page.tsx`; updated the home-page navigation and project documentation.

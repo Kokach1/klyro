@@ -146,11 +146,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(responseData, { status: 200 });
   } catch (err: any) {
     if (err instanceof ExtractionChainError) {
+      const detailsStr = err.details?.length ? ` (${err.details.join("; ")})` : "";
       return NextResponse.json(
         {
           error: {
             code: "service_unavailable",
-            message: err.message,
+            message: `${err.message}${detailsStr}`,
             retryable: true,
           },
         },

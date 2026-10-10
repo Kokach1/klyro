@@ -13,6 +13,22 @@ export interface AppEnv {
   OPENCORPORATES_API_KEY?: string;
 }
 
+function extractApiKeyFromPossibleUrl(keyRaw?: string): string | undefined {
+  if (!keyRaw) return undefined;
+  const trimmed = keyRaw.trim();
+  if (trimmed.includes("apiKey=")) {
+    try {
+      const parsed = new URL(trimmed);
+      const param = parsed.searchParams.get("apiKey");
+      if (param) return param.trim();
+    } catch {
+      const match = trimmed.match(/apiKey=([^&]+)/);
+      if (match) return match[1].trim();
+    }
+  }
+  return trimmed;
+}
+
 export function getServerEnv(): AppEnv {
   const geminiKeysRaw =
     process.env.GEMINI_API_KEYS?.trim() ||
@@ -35,7 +51,7 @@ export function getServerEnv(): AppEnv {
       undefined
     ),
     // Accept WHOISXML_API_KEY as primary, WHOISXML_KEY as fallback per spec
-    WHOISXML_API_KEY: (
+    WHOISXML_API_KEY: extractApiKeyFromPossibleUrl(
       process.env.WHOISXML_API_KEY?.trim() ||
       process.env.WHOISXML_KEY?.trim() ||
       undefined
