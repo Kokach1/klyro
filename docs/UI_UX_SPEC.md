@@ -24,7 +24,7 @@ After extraction, scroll and focus the review heading. Display labelled editable
 Show a compact source-text disclosure and fee quotes. Preserve original source text internally. Corrections update structured lookup context, not the original quotations. Present "Edit posting" and primary "Run checks". Explain uncertain company/domain candidates and avoid preselecting an unrelated same-name company.
 
 ## Progress
-On Run checks, scroll to the results heading and show all five cards immediately. Each card uses Pending, Running, or its final status. Use an indeterminate indicator only while its own task is running. Show check completion based on received events, not timers. Do not show invented "84% complete" progress.
+On Run checks, scroll to the results heading and show all four cards immediately. Each card uses Pending, Running, or its final status. Use an indeterminate indicator only while its own task is running. Show check completion based on received events, not timers. Do not show invented "84% complete" progress.
 
 Use `aria-live="polite"` for a compact progress summary. Do not repeatedly move keyboard focus as individual cards finish. Disable duplicate scans while active. A retry is a new scan and may use provider quota.
 
@@ -32,9 +32,9 @@ Use `aria-live="polite"` for a compact progress summary. Do not repeatedly move 
 Order content as follows:
 1. Posting-risk label and its exact qualifying sentence from PROJECT_BRIEF.md.
 2. Compact semicircular or circular dial labelled "Rule-based risk index", with integer `0-100` and visible legend "Higher = more observed risk signals. Not a probability." Do not append a percent sign. If rule evaluation failed, show "Unavailable", not zero.
-3. Coverage: "X of 5 checks completed", followed by counts of inconclusive, unavailable and not applicable. A check can be completed and still report uncertainty in its finding; domain partial data uses inconclusive under AGENTS.md.
+3. Coverage: "X of 4 checks completed", followed by counts of inconclusive, unavailable and not applicable. A check can be completed and still report uncertainty in its finding; domain partial data uses inconclusive under AGENTS.md.
 4. Main reasons, linked to check cards and evidence.
-5. Five check cards.
+5. Four check cards.
 6. Practical next steps and the fixed disclaimer.
 
 Safe uses teal, Caution amber, Likely Scam red. Always pair colors with text and icons. An index of 0 with Caution is valid: explain "No scored signals, but verification is incomplete." Never convert it into a Safe verdict to make the dial look consistent.
@@ -63,4 +63,4 @@ Render quoted evidence as inert text with source label. Show external evidence t
 Do not put posting text in browser URL parameters, localStorage, analytics or error reports. Do not display a green shield or "verified employer" badge. Place this text below every verdict: "This tool reports risk signals and allegations found, not legal findings or guaranteed legitimacy."
 
 ## Acceptance checks
-Inspect the actual running page at 320px, 390px and desktop width. Test long company names, URL wrapping, five unavailable cards, unknown extracted fields, keyboard navigation, screen-reader labels, focus after extraction, disabled duplicate submissions, red payment evidence and a score-zero Caution result. Require no horizontal page overflow. Respect reduced-motion preferences. Do not ship a screenshot upload control unless the OCR stretch goal is fully implemented and its review step works.
+Inspect the actual running page at 320px, 390px and desktop width. Test long company names, URL wrapping, four unavailable cards, unknown extracted fields, keyboard navigation, screen-reader labels, focus after extraction, disabled duplicate submissions, red payment evidence and a score-zero Caution result. Require no horizontal page overflow. Respect reduced-motion preferences. Do not ship a screenshot upload control unless the OCR stretch goal is fully implemented and its review step works.

@@ -8,7 +8,7 @@ Keep extraction, correction, checking and results in client memory at `/`. Use a
 | `/` | Landing and input | Empty, editable text/URL input, validation error, extracting, URL blocked, extraction failed |
 | `/#review` | Review extracted claims | Ready for correction, unknown fields, identity ambiguity, validation error, submitting |
 | `/#results` | Progress and verdict | Pending, per-check running, completed result, partial result, all providers unavailable, interrupted scan |
-| `/about` | About and methodology | Static explanation of five checks, rules, label caveats, privacy and provider limitations |
+| `/about` | About and methodology | Static explanation of four checks, rules, label caveats, privacy and provider limitations |
 
 Scan anchors scroll within the same document. Opening a scan anchor without state must show a short empty state with "Start a check"; it must not fetch a previous user's result. Keep About and Methodology accessible without scanning.
 
@@ -30,12 +30,11 @@ The original source text remains immutable for quote-based flags. Editable ident
 Require at least a nonempty company name or role for verification. Unknown company identity is allowed but dependent checks must report inconclusive. Run checks does not imply the user has authenticated the recruiter or company domain.
 
 ## `/#results`: progress and verdict section
-Render all five cards immediately in this fixed order:
+Render all four cards immediately in this fixed order:
 1. Message red flags (`message_flags`).
 2. Company domain and age (`domain_age`).
 3. Official careers-page match (`careers_match`).
-4. Indian company registration (`registration`).
-5. Complaints and reviews (`complaints`).
+4. Complaints and reviews (`complaints`).
 
 Pending and running are UI-only states. Terminal data statuses are `completed`, `inconclusive`, `unavailable`, `not_applicable`.
 
@@ -51,6 +50,6 @@ Explain what each check does, the deterministic scoring rules, the Safe gate and
 
 ## API routes, not user pages
 - `POST /api/extract`: read input and return structured claims plus bounded source text.
-- `POST /api/verify`: run five checks and return the final verdict or stream progress plus that verdict.
+- `POST /api/verify`: run four checks and return the final verdict or stream progress plus that verdict.
 
 Do not add a persistent status endpoint or background queue. TECHNICAL_SPEC.md defines both contracts.

@@ -1,16 +1,18 @@
-# Job Scam Detector (Klyro)
+# Klyro — Job Scam Detector
 
-A web application that detects recruitment fraud patterns, suspicious payment conditions, newly registered domains, uncorroborated vacancies, and public complaints using an evidence-backed, deterministic verification pipeline.
+A web application that helps job seekers identify recruitment-risk signals before they apply or pay. Klyro evaluates job messages and public vacancy links using evidence-backed checks and deterministic rules.
 
-Built with Next.js App Router, React, TypeScript, Zod, and Vitest. Deployable on Vercel.
+Built with Next.js App Router, React, TypeScript, Zod, and Vitest. The production deployment runs on Vercel.
 
-**[Submission Details](SUBMISSION.md)** · **[AI Usage Log](AI_USAGE.md)** · **[Changelog](CHANGELOG.md)** · **[Event Rules](RULES.md)** · **[Specifications](docs/PROJECT_BRIEF.md)**
+**Live demo:** [klyro-mauve-two.vercel.app](https://klyro-mauve-two.vercel.app/)
+
+**Repository documentation:** [Submission](SUBMISSION.md) · [AI usage](AI_USAGE.md) · [Changelog](CHANGELOG.md) · [Event rules](RULES.md) · [Project brief](docs/PROJECT_BRIEF.md) · [Technical specification](docs/TECHNICAL_SPEC.md)
 
 ---
 
 ## Overview
 
-Job Scam Detector analyzes job postings, recruiter messages, and vacancy links to identify potential employment fraud before candidates apply or pay. 
+Klyro analyzes job postings, recruiter messages, and vacancy links to identify potential employment fraud before candidates apply or pay.
 
 Unlike generic sentiment-based AI tools, this system uses an evidence-grounded verification pipeline:
 - AI models only perform bounded extraction and evidence summarization.
@@ -40,6 +42,12 @@ Structured claim extraction uses a robust multi-provider fallback chain:
 2. **OpenAI Fallback:** If all Gemini keys hit quota limits or fail, falls back to OpenAI (`gpt-4o-mini`) with the identical `ExtractedClaims` schema.
 3. **Honest Unavailable:** If all providers fail or are unconfigured, returns an honest `unavailable` status (HTTP 503) without fabricating claims.
 4. Once a provider succeeds for a scan, that scan is completed on that provider. All extracted fee claims are cross-checked against source text to discard fabricated quotes.
+
+## Live Demo
+
+Open the [deployed Klyro application](https://klyro-mauve-two.vercel.app/) to run a live scan. Enter either a forwarded job message or a public job-posting URL, review the extracted claims, and select **Run checks**.
+
+The deployment requires configured server-side provider credentials for full external verification. If a provider is unavailable, Klyro reports the affected check as unavailable and keeps the result explicitly partial.
 
 ### The Four Checks
 
@@ -134,7 +142,7 @@ app/
 components/
   CheckCard.tsx             # Terminal status chips, findings, expandable evidence
   ClaimReview.tsx           # Editable claim fields and immutable source drawer
-  Icons.tsx                 # Accessible inline SVG line icons (zero emojis)
+  Icons.tsx                 # Accessible inline SVG line icons
   InputForm.tsx             # Text/URL modes, counters, verbatim privacy notice
   MethodologySection.tsx    # Static methodology, rules, and privacy documentation
   ResultsSection.tsx        # Dial, coverage, reasons, cards, and next steps
@@ -146,7 +154,7 @@ docs/
   TECHNICAL_SPEC.md         # Data contracts, API specs, provider adapters
   AGENTS.md                 # Agent instructions, verbatim prompts, test cases
 lib/
-  checks/                   # Five verification check implementations
+  checks/                   # Four verification check implementations
   providers/                # OpenAI, SerpAPI, WhoisXML provider adapters
   contracts.ts              # Zod schemas and TypeScript types
   env.ts                    # Server-only environment variable loader
@@ -154,8 +162,7 @@ lib/
   rate-limit.ts             # In-memory IP rate limiter
   rules.ts                  # Pure deterministic rule engine
   safe-fetch.ts             # SSRF prevention and IP validation
-tests/                      # Vitest test suites (30 tests)
-PROGRESS.md                 # Development step-by-step progress tracker
+tests/                      # Vitest test suites
 ```
 
 ---
@@ -188,7 +195,7 @@ Fill in your API keys in `.env.local`:
 ```dotenv
 # Comma-separated Gemini API keys (primary rotation)
 GEMINI_API_KEYS=key1,key2
-GEMINI_MODEL=gemini-1.5-flash
+GEMINI_MODEL=gemini-3.8-flash
 
 # Fallback extraction provider
 OPENAI_API_KEY=your_openai_api_key
@@ -208,7 +215,7 @@ OPENCORPORATES_API_KEY=
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3000](http://localhost:3000) in your browser. The deployed demo is available at [klyro-mauve-two.vercel.app](https://klyro-mauve-two.vercel.app/).
 
 ### 4. Run Test Suites
 
@@ -230,6 +237,8 @@ npm run start
 ---
 
 ## Deployment on Vercel
+
+The current production deployment is [klyro-mauve-two.vercel.app](https://klyro-mauve-two.vercel.app/).
 
 1. Push this repository to GitHub.
 2. Import the repository into your Vercel dashboard.

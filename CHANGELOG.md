@@ -4,6 +4,16 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+### 2026-10-11T09:11:20+05:30 — Publish professional repository documentation
+
+- Changed:
+  - `README.md`: Added the production demo link, clarified the product description and live-scan behavior, corrected the current four-check project structure, and documented deployment access expectations.
+  - `SUBMISSION.md`: Added labeled project, production demo, repository, workflow, validation, and limitations details; corrected the submitted commit SHA to `cfb4bb3`.
+  - `docs/PROJECT_BRIEF.md`, `docs/SITEMAP.md`, `docs/UI_UX_SPEC.md`, `docs/TECHNICAL_SPEC.md`, and `docs/AGENTS.md`: Aligned the documentation with the implemented four-check system and removed obsolete registration-check requirements.
+- Why: Make the repository suitable for professional review and ensure public documentation matches the deployed application.
+- Validation: Checked Markdown consistency, confirmed no stale five-check references in current documentation, and scanned documentation for emoji-range characters.
+- Limitations: The deployed demo still depends on the server-side provider credentials described in `.env.example`.
+
 ### 2026-10-11T08:23:00+05:30 — Make live risk and coverage progress dynamic
 
 - Changed:

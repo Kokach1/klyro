@@ -1,13 +1,15 @@
-# Project submission
+# Klyro — Project Submission
 
-## Project
+## Project Overview
 
 - **Project name:** Klyro — Job Scam Detector
 - **Short description:** An evidence-backed job scam detection application that protects job seekers from fake recruitment offers, upfront fee demands, newly registered domains, uncorroborated vacancies, and scam allegations through deterministic verification rules.
 - **Code repository URL:** https://github.com/Kokach1/klyro
-- **Final submitted implementation commit SHA:** 88cc803
-- **Working demo URL or local demo steps:** Clone repo, run `npm install`, `npm run build`, and `npm run start`. Visit `http://localhost:3000` and submit a live posting.
-- **Demo access requirements:** Live scans require valid server environment variables in `.env.local` (`GEMINI_API_KEYS` or `OPENAI_API_KEY` for extraction, `SERPAPI_API_KEY`, `WHOISXML_API_KEY`).
+- **Final submitted implementation commit SHA:** `cfb4bb3`
+- **Production demo:** [https://klyro-mauve-two.vercel.app/](https://klyro-mauve-two.vercel.app/)
+- **Source repository:** [https://github.com/Kokach1/klyro](https://github.com/Kokach1/klyro)
+- **Local fallback:** Clone the repository, run `npm install`, `npm run build`, and `npm run start`, then open `http://localhost:3000`.
+- **Demo access requirements:** Full live verification requires server-side provider credentials. See `.env.example`; credentials must never be exposed in client code or committed files.
 
 ## Participants
 
@@ -15,14 +17,14 @@
 | --- | --- | --- |
 | Jeswin Joy | Kokach1 | Full-stack architecture, prompt design, verification pipeline, testing |
 
-## Run and demonstrate
+## Demonstration Workflow
 
 - **Prerequisites and versions:** Node.js 18+ (tested on Node v24.11.1), npm 9+
 - **Install command:** `npm install`
 - **Required environment variable names:** `GEMINI_API_KEYS`, `OPENAI_API_KEY`, `SERPAPI_API_KEY`, `WHOISXML_API_KEY`, `OPENAI_MODEL`, `GEMINI_MODEL` (see `.env.example`).
 - **Start command:** `npm run dev` (dev server) or `npm run build && npm run start` (production)
 - **Demo walkthrough:**
-  1. Open http://localhost:3000.
+  1. Open the [production demo](https://klyro-mauve-two.vercel.app/) or the local server at `http://localhost:3000`.
   2. Paste a forwarded job message or public job link, then submit it.
   3. Review or correct the extracted claims and click "Run checks".
   4. View the real-time NDJSON progress stream across all 4 checks.
@@ -33,7 +35,7 @@
   - Production build compiled successfully (`npm run build`).
   - Client bundle verified free of secrets or credential strings.
   - Responsive visual inspection at 320px, 390px, and desktop viewports with zero horizontal overflow.
-  - Zero emojis across code, UI, and documentation.
+  - Code, user interface, and documentation use professional text labels without emoji characters.
 - **Known limitations or incomplete features:**
   - Live third-party provider access requires valid server API keys. The configured WhoisXML credential was rejected during the latest local check, so domain-age results remain honestly unavailable until it is replaced.
   - Screenshot image OCR was excluded from MVP scope per spec.
@@ -45,7 +47,7 @@
   - [tldts](https://github.com/remusao/tldts) (Public-suffix domain parsing)
   - [Google Gemini API](https://ai.google.dev/) (Primary structured extraction with multi-key quota rotation)
   - [OpenAI API](https://platform.openai.com/) (Fallback structured extraction with gpt-4o-mini, and summary generation)
-  - [SerpAPI](https://serpapi.com/) (Defensive Google Search queries for careers, MCA registration, complaints)
+  - [SerpAPI](https://serpapi.com/) (Defensive search queries for careers and public complaints)
   - [WhoisXML API](https://www.whoisxmlapi.com/) (Domain creation dates and registry verification)
 - **AI usage record:** [AI_USAGE.md](AI_USAGE.md)
 - **Development change log:** [CHANGELOG.md](CHANGELOG.md)

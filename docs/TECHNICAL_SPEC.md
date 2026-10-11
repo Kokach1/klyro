@@ -14,7 +14,7 @@ components/                 InputForm, ClaimReview, RiskDial, CheckCard
 lib/contracts.ts            schemas and TypeScript types
 lib/safe-fetch.ts            public URL/DNS/redirect validation
 lib/providers/              openai.ts, serpapi.ts, whoisxml.ts
-lib/checks/                 five modules with fixed check IDs
+lib/checks/                 four modules with fixed check IDs
 lib/rules.ts                pure signal scoring, coverage and label gate
 lib/prompts.ts              app extraction/evaluation/summary prompts
 tests/                     rule, provider failure and flow tests
@@ -109,7 +109,7 @@ Start events reflect actual execution; do not send fake timer progress. On an in
 ## Final JSON contract
 Define runtime validation (for example Zod) for this exact contract. Timestamps use UTC ISO 8601; null means unknown. Arrays may be empty. Check IDs must occur exactly once in the stated order.
 ```ts
-type CheckId = "message_flags" | "domain_age" | "careers_match" | "registration" | "complaints";
+type CheckId = "message_flags" | "domain_age" | "careers_match" | "complaints";
 type CheckStatus = "completed" | "inconclusive" | "unavailable" | "not_applicable";
 type ReasonCode = "missing_key" | "timeout" | "quota" | "blocked_page" | "missing_data"
   | "provider_error" | "ambiguous_identity" | "no_domain" | "not_indian_company"
@@ -171,14 +171,13 @@ type VerdictResponse = {
   disclaimer: string;
 };
 ```
-Use neutral null/false defaults for irrelevant fact fields. `false` for `domainOfficialConfirmed` means not established, not disproven. Coverage counts sum to five. Invalid check output becomes an unavailable check, never a clean check. Check-specific unknowns are expressed in status/reason, not silently omitted. `not_indian_company` requires known evidence that this check does not apply; unknown legal form uses inconclusive.
+Use neutral null/false defaults for irrelevant fact fields. `false` for `domainOfficialConfirmed` means not established, not disproven. Coverage counts sum to four. Invalid check output becomes an unavailable check, never a clean check. Check-specific unknowns are expressed in status/reason, not silently omitted.
 
 Errors before verification begins use `{ error: { code: string, message: string, retryable: boolean } }`. Use 400 for validation, 413 for size, 429 for rate limiting, 422 for unreadable URL/extraction failure, and 503 for extraction service unavailable. Missing keys for verification checks yield HTTP 200 partial results, not total failure. If summarization fails, retain the deterministic verdict and rule-based summary.
 
 ## Queries and evidence handling
 Construct queries from the extracted company name only; do not let input inject provider parameters:
 - Careers: `"<company>" careers`.
-- Registration: `"<company>" private limited CIN registration`. Prefer official records and do not imply every business requires a CIN.
 - Complaints: `"<company>" scam OR complaint OR review`.
 
 Read selected result pages before reporting verified facts. Preserve relevant quotes from those pages. If pages are blocked, label snippets as snippets and use inconclusive/unavailable rather than claiming verification. Deduplicate URLs and copied allegation narratives; repeated snippets are not independent reports. Do not return a provider's credential-bearing `serpapi_link` as evidence.
