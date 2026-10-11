@@ -24,7 +24,7 @@ export interface ExtractionChainResult {
  */
 export async function extractClaimsWithProviderChain(
   postingText: string,
-  timeoutMs = 15000
+  timeoutMs = 25000
 ): Promise<ExtractionChainResult> {
   const env = getServerEnv();
   const geminiKeys = env.GEMINI_API_KEYS;

@@ -4,6 +4,20 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+### 2026-10-11T05:55:00+05:30 — Fix Job Link extraction, DNS lookup pin, and array limit clamping
+
+- Changed:
+  - `lib/safe-fetch.ts`: Fixed `lookup` callback signature in `https.request` DNS pinning to properly check `options.all` and pass `[{ address, family }]` when requested by Node.js, resolving `Invalid IP address: undefined` failures on all outbound HTTP/HTTPS fetches.
+  - `lib/providers/jina.ts`: Removed fake browser `User-Agent` header when calling `https://r.jina.ai/<url>` so Cloudflare no longer triggers HTTP 403 bot challenges on Jina Reader page fetches.
+  - `app/api/extract/route.ts`: Updated job URL analysis to auto-prepend `https://` if omitted, route initial page reads through `fetchWithJinaReader` (to render SPAs and bypass scrape walls) with fallback to `safeFetchUrl`, and increased extraction timeout budget to 25s.
+  - `components/InputForm.tsx`: Automatically prepends `https://` to submitted job URLs and validates URL format gracefully without rejecting un-prefixed domains.
+  - `lib/providers/gemini.ts` & `lib/providers/openai.ts`: Clamped extracted `links` and `contacts` arrays to at most 10 elements prior to Zod validation, preventing `too_big` validation crashes on job board directory pages containing dozens of vacancy links.
+  - `lib/checks/registration.ts`: Skipped redundant candidate page fetches when search snippet already corroborated exact legal name and CIN.
+- Why: Fix the job link submission option so users can paste any public job vacancy URL (including SPAs and pages with multiple links) and successfully extract claims for review.
+- Validation: Verified live in browser with `browser_subagent` submitting `https://infopark.in/jobs` -> successfully transitioned to `#review` stage with extracted claims; all 62 Vitest unit tests passed (`npm test`); Next.js production build (`npm run build`) succeeded with 0 errors.
+- Limitations: URLs that require user authentication, intranet credentials, or CAPTCHA cannot be read and prompt the user to paste message text instead.
+
+
 ### 2026-10-11T04:38:00+05:30 — Fix Gemini key rotation and partial scoring with mandatory coverage and locked Safe label
 
 - Changed:

@@ -197,6 +197,16 @@ export async function extractClaimsWithGeminiKey(
       continue;
     }
 
+    // Ensure links and contacts do not exceed max schema limits
+    if (parsed && typeof parsed === "object") {
+      if (Array.isArray(parsed.links) && parsed.links.length > 10) {
+        parsed.links = parsed.links.slice(0, 10);
+      }
+      if (Array.isArray(parsed.contacts) && parsed.contacts.length > 10) {
+        parsed.contacts = parsed.contacts.slice(0, 10);
+      }
+    }
+
     // Runtime validation using the exact same Zod schema
     const validated = ExtractedClaimsSchema.parse(parsed);
 

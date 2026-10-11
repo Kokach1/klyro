@@ -295,8 +295,10 @@ export async function checkRegistration(
     }
   }
 
-  // Try reading candidate pages for official registry verification
-  const candidates = selectCandidatePages(prioritizedResults, (url) => url.toLowerCase().includes("mca.gov.in"));
+  // Try reading candidate pages for official registry verification if not already corroborated from snippet
+  const candidates = !snippetCorroborated
+    ? selectCandidatePages(prioritizedResults, (url) => url.toLowerCase().includes("mca.gov.in"))
+    : [];
   let verifiedPageMatch = false;
 
   if (candidates.length > 0) {

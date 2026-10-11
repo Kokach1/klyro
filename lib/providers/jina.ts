@@ -42,7 +42,6 @@ export async function fetchWithJinaReader(
 
   const env = getServerEnv();
   const headers: Record<string, string> = {
-    "User-Agent": BROWSER_USER_AGENT,
     Accept: "text/plain",
     "X-No-Cache": "true",
   };

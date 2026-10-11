@@ -156,6 +156,16 @@ export async function extractClaimsWithOpenAI(
     throw new Error(`Failed to parse extraction JSON: ${err.message}`);
   }
 
+  // Ensure links and contacts do not exceed max schema limits
+  if (parsedJson && typeof parsedJson === "object") {
+    if (Array.isArray(parsedJson.links) && parsedJson.links.length > 10) {
+      parsedJson.links = parsedJson.links.slice(0, 10);
+    }
+    if (Array.isArray(parsedJson.contacts) && parsedJson.contacts.length > 10) {
+      parsedJson.contacts = parsedJson.contacts.slice(0, 10);
+    }
+  }
+
   // Runtime validation via Zod
   const validated = ExtractedClaimsSchema.parse(parsedJson);
 

@@ -343,8 +343,15 @@ export async function safeFetchUrl(
           "Upgrade-Insecure-Requests": "1",
         },
         // Pin DNS lookup to the verified public IP address to prevent DNS rebinding
-        lookup: (_hostname, _opts, callback) => {
-          callback(null, targetIp, targetIp.includes(":") ? 6 : 4);
+        lookup: (_hostname, opts, callback) => {
+          const cb = typeof opts === "function" ? opts : callback;
+          const options = typeof opts === "object" ? opts : {};
+          const family = targetIp.includes(":") ? 6 : 4;
+          if (options?.all) {
+            cb(null, [{ address: targetIp, family }]);
+          } else {
+            cb(null, targetIp, family);
+          }
         },
       };
 

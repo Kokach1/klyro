@@ -61,27 +61,31 @@ export function InputForm({
       return;
     }
 
+    let finalInput = trimmed;
     if (inputType === "url") {
+      if (!/^https?:\/\//i.test(finalInput)) {
+        finalInput = `https://${finalInput}`;
+      }
       try {
-        const parsed = new URL(trimmed);
+        const parsed = new URL(finalInput);
         if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
           setClientError("Only HTTP and HTTPS URLs are supported.");
           return;
         }
       } catch {
-        setClientError("Please enter a valid absolute public URL (starting with http:// or https://).");
+        setClientError("Please enter a valid public job URL (e.g. https://company.com/careers/job).");
         return;
       }
     }
 
-    if (trimmed.length > currentLimit) {
+    if (finalInput.length > currentLimit) {
       setClientError(
         `Input exceeds the maximum allowed length of ${currentLimit.toLocaleString()} characters.`
       );
       return;
     }
 
-    await onAnalyze(inputType, trimmed);
+    await onAnalyze(inputType, finalInput);
   };
 
   return (

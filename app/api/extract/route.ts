@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ExtractRequestSchema, ExtractResponse } from "@/lib/contracts";
-import { safeFetchUrl, SafeFetchError } from "@/lib/safe-fetch";
+import { safeFetchUrl } from "@/lib/safe-fetch";
+import { fetchWithJinaReader } from "@/lib/providers/jina";
 import {
   extractClaimsWithProviderChain,
   ExtractionChainError,
@@ -64,7 +65,12 @@ export async function POST(req: NextRequest) {
   const warnings: string[] = [];
 
   if (inputType === "url") {
-    if (input.length > 2048) {
+    let targetUrl = input.trim();
+    if (!/^https?:\/\//i.test(targetUrl)) {
+      targetUrl = `https://${targetUrl}`;
+    }
+
+    if (targetUrl.length > 2048) {
       return NextResponse.json(
         {
           error: {
@@ -77,33 +83,41 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // First attempt: Jina Reader (handles SPAs, anti-scraping walls, and renders clean text)
     try {
-      const fetchResult = await safeFetchUrl(input, {
-        timeoutMs: 8000,
-        maxBytes: 1024 * 1024,
-        maxRedirects: 3,
+      const jinaResult = await fetchWithJinaReader(targetUrl, {
+        timeoutMs: 10000,
         maxTextChars: 8000,
       });
-      sourceText = fetchResult.text;
-      sourceUrl = fetchResult.finalUrl;
-    } catch (err: any) {
-      return NextResponse.json(
-        {
-          error: {
-            code: "url_unreadable",
-            message: "We could not read this link. Paste the job text instead.",
-            retryable: false,
-          },
-        },
-        { status: 422 }
-      );
+      if (jinaResult && jinaResult.text && jinaResult.text.trim().length >= 30) {
+        sourceText = jinaResult.text;
+        sourceUrl = jinaResult.finalUrl || targetUrl;
+      }
+    } catch {
+      // Proceed to direct safeFetchUrl fallback
+    }
+
+    // Second attempt: direct safeFetchUrl fallback if Jina Reader was unavailable or returned empty text
+    if (!sourceText) {
+      try {
+        const fetchResult = await safeFetchUrl(targetUrl, {
+          timeoutMs: 8000,
+          maxBytes: 1024 * 1024,
+          maxRedirects: 3,
+          maxTextChars: 8000,
+        });
+        sourceText = fetchResult.text;
+        sourceUrl = fetchResult.finalUrl;
+      } catch {
+        // Both readers failed
+      }
     }
 
     if (!sourceText || sourceText.trim().length === 0) {
       return NextResponse.json(
         {
           error: {
-            code: "empty_content",
+            code: "url_unreadable",
             message: "We could not read this link. Paste the job text instead.",
             retryable: false,
           },
@@ -130,7 +144,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const { extracted, warnings: extractionWarnings } =
-      await extractClaimsWithProviderChain(sourceText, 15000);
+      await extractClaimsWithProviderChain(sourceText, 25000);
 
     const responseData: ExtractResponse = {
       source: {
