@@ -26,7 +26,7 @@ Message Text / Job URL
   -> Safe URL Fetch & SSRF Validation
   -> Extraction Provider Chain (Gemini x N -> OpenAI fallback)
   -> User Claim Review & Correction
-  -> Concurrent Five-Check Execution
+  -> Concurrent Four-Check Execution
   -> Deterministic Scoring & Label Gates
   -> Evidence-Grounded Summary & Next Steps
   -> Streaming Result UI with Evidence Cards
@@ -40,7 +40,7 @@ Structured claim extraction uses a robust multi-provider fallback chain:
 3. **Honest Unavailable:** If all providers fail or are unconfigured, returns an honest `unavailable` status (HTTP 503) without fabricating claims.
 4. Once a provider succeeds for a scan, that scan is completed on that provider. All extracted fee claims are cross-checked against source text to discard fabricated quotes.
 
-### The Five Checks
+### The Four Checks
 
 1. **Message red flags (`message_flags`)**
    - Scans posting text for candidate payment demands, mandatory paid training, coercive urgency, and recruiter contacts on free webmail domains.
@@ -60,12 +60,7 @@ Structured claim extraction uses a robust multi-provider fallback chain:
    - Validates that the role and employer match the official portal.
    - Emits `careers_not_found` when a thorough lookup finds no active matching vacancy.
 
-4. **Indian company registration (`registration`)**
-   - Searches MCA records and corporate registries for Corporate Identification Numbers (CIN).
-   - Verifies 21-character CIN patterns (`[UL]\d{5}[A-Z]{2}\d{4}[A-Z]{3}\d{6}`).
-   - Corroborates active legal entity registration in India without penalizing unincorporated businesses.
-
-5. **Complaints and reviews (`complaints`)**
+4. **Complaints and reviews (`complaints`)**
    - Searches public complaint records for recruitment and payment allegations.
    - Requires at least two independent, deduplicated sources to establish a reported complaint pattern (`complaint_pattern`).
 

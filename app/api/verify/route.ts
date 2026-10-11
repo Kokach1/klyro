@@ -12,7 +12,6 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { checkMessageFlags } from "@/lib/checks/message-flags";
 import { checkDomainAge } from "@/lib/checks/domain-age";
 import { checkCareersMatch } from "@/lib/checks/careers-match";
-import { checkRegistration } from "@/lib/checks/registration";
 import { checkComplaints } from "@/lib/checks/complaints";
 import {
   calculateCoverage,
@@ -164,13 +163,11 @@ export async function POST(req: NextRequest) {
           messageCheck,
           domainCheck,
           careersCheck,
-          registrationCheck,
           complaintsCheck,
         ] = await Promise.all([
           runCheckWithBudget("message_flags", () => checkMessageFlags(source, extracted)),
           runCheckWithBudget("domain_age", () => checkDomainAge(extracted, analysisDate)),
           runCheckWithBudget("careers_match", () => checkCareersMatch(extracted, analysisDate)),
-          runCheckWithBudget("registration", () => checkRegistration(extracted, analysisDate)),
           runCheckWithBudget("complaints", () => checkComplaints(extracted, analysisDate)),
         ]);
 
@@ -178,7 +175,6 @@ export async function POST(req: NextRequest) {
           messageCheck,
           domainCheck,
           careersCheck,
-          registrationCheck,
           complaintsCheck,
         ];
 
@@ -281,7 +277,6 @@ export async function POST(req: NextRequest) {
       runCheckSafely("message_flags", () => checkMessageFlags(source, extracted)),
       runCheckSafely("domain_age", () => checkDomainAge(extracted, analysisDate)),
       runCheckSafely("careers_match", () => checkCareersMatch(extracted, analysisDate)),
-      runCheckSafely("registration", () => checkRegistration(extracted, analysisDate)),
       runCheckSafely("complaints", () => checkComplaints(extracted, analysisDate)),
     ]);
 

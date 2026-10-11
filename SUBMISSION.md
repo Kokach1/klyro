@@ -25,10 +25,10 @@
   1. Open http://localhost:3000.
   2. Paste a forwarded job message or public job link, then submit it.
   3. Review or correct the extracted claims and click "Run checks".
-  4. View the real-time NDJSON progress stream across all 5 checks.
+  4. View the real-time NDJSON progress stream across all 4 checks.
   5. Inspect the rule-based risk index dial (0-100, no percent sign), coverage statistics, check findings, and expandable evidence items with inert quoted text.
 - **Checks performed and results:**
-  - 35 automated Vitest unit, rule, provider, extraction chain, and security failure tests passing (`npm run test`).
+  - 55 automated Vitest unit, rule, provider, extraction chain, and security failure tests passing (`npm run test`).
   - Strict TypeScript compilation with zero errors (`npm run typecheck`).
   - Production build compiled successfully (`npm run build`).
   - Client bundle verified free of secrets or credential strings.

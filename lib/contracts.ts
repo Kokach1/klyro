@@ -68,7 +68,6 @@ export const CheckIdSchema = z.enum([
   "message_flags",
   "domain_age",
   "careers_match",
-  "registration",
   "complaints",
 ]);
 export type CheckId = z.infer<typeof CheckIdSchema>;
@@ -77,7 +76,6 @@ export const CHECK_IDS_ORDERED: readonly CheckId[] = [
   "message_flags",
   "domain_age",
   "careers_match",
-  "registration",
   "complaints",
 ] as const;
 
@@ -213,11 +211,11 @@ export const VerdictDetailsSchema = z.object({
 export type VerdictDetails = z.infer<typeof VerdictDetailsSchema>;
 
 export const CoverageSchema = z.object({
-  total: z.literal(5),
-  completed: z.number().int().min(0).max(5),
-  inconclusive: z.number().int().min(0).max(5),
-  unavailable: z.number().int().min(0).max(5),
-  notApplicable: z.number().int().min(0).max(5),
+  total: z.literal(4),
+  completed: z.number().int().min(0).max(4),
+  inconclusive: z.number().int().min(0).max(4),
+  unavailable: z.number().int().min(0).max(4),
+  notApplicable: z.number().int().min(0).max(4),
 });
 export type Coverage = z.infer<typeof CoverageSchema>;
 
@@ -228,7 +226,7 @@ export const VerdictResponseSchema = z.object({
   extracted: ExtractedClaimsSchema,
   verdict: VerdictDetailsSchema,
   coverage: CoverageSchema,
-  checks: z.array(CheckResultSchema).length(5),
+  checks: z.array(CheckResultSchema).length(4),
   nextSteps: z.array(z.string()),
   disclaimer: z.string(),
 });

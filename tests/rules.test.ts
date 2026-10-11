@@ -86,7 +86,6 @@ describe("lib/rules: Deterministic Scoring & Gates", () => {
       createCompletedCheck("message_flags"),
       { ...createCompletedCheck("domain_age"), status: "unavailable", reasonCode: "missing_key" },
       { ...createCompletedCheck("careers_match"), status: "unavailable", reasonCode: "missing_key" },
-      { ...createCompletedCheck("registration"), status: "unavailable", reasonCode: "missing_key" },
       { ...createCompletedCheck("complaints"), status: "unavailable", reasonCode: "missing_key" },
     ];
 
@@ -102,7 +101,6 @@ describe("lib/rules: Deterministic Scoring & Gates", () => {
       createCompletedCheck("message_flags"),
       createCompletedCheck("domain_age"),
       createCompletedCheck("careers_match"),
-      createCompletedCheck("registration"),
       createCompletedCheck("complaints"),
     ];
 
@@ -122,7 +120,6 @@ describe("lib/rules: Deterministic Scoring & Gates", () => {
         status: "inconclusive",
         reasonCode: "blocked_page",
       },
-      createCompletedCheck("registration"),
       createCompletedCheck("complaints"),
     ];
 
@@ -130,11 +127,11 @@ describe("lib/rules: Deterministic Scoring & Gates", () => {
     expect(verdict.label).toBe("Caution");
     expect(verdict.ruleId).toBe("caution_default");
     expect(verdict.riskIndex).toBe(0);
-    expect(verdict.labelExplanation).toContain("based on 4 of 5 checks");
+    expect(verdict.labelExplanation).toContain("based on 3 of 4 checks");
     expect(verdict.labelExplanation).toContain("Safe label is locked");
   });
 
-  it("scores from completed checks only when 3 of 5 checks completed (missing checks stay neutral / 0 points)", () => {
+  it("scores from completed checks only when 3 of 4 checks completed (missing checks stay neutral / 0 points)", () => {
     const checks: CheckResult[] = [
       {
         ...createCompletedCheck("message_flags"),
@@ -157,12 +154,6 @@ describe("lib/rules: Deterministic Scoring & Gates", () => {
         signals: [],
       },
       {
-        ...createCompletedCheck("registration"),
-        status: "unavailable",
-        reasonCode: "missing_key",
-        signals: [],
-      },
-      {
         ...createCompletedCheck("complaints"),
         status: "unavailable",
         reasonCode: "timeout",
@@ -179,31 +170,30 @@ describe("lib/rules: Deterministic Scoring & Gates", () => {
     const coverage = calculateCoverage(checks);
 
     expect(coverage.completed).toBe(3);
-    expect(coverage.total).toBe(5);
+    expect(coverage.total).toBe(4);
     // 10 + 10 + 15 = 35 points from completed checks; unavailable checks added 0 points
     expect(totalPoints).toBe(35);
 
     const verdict = evaluateVerdict(checks, acceptedSignals, totalPoints);
     expect(verdict.label).toBe("Caution");
     expect(verdict.riskIndex).toBe(35);
-    expect(verdict.labelExplanation).toContain("based on 3 of 5 checks");
+    expect(verdict.labelExplanation).toContain("based on 3 of 4 checks");
     expect(verdict.labelExplanation).toContain("Safe label is locked");
   });
 
-  it("keeps Safe label locked on 0 points if only 3 of 5 checks completed", () => {
+  it("keeps Safe label locked on 0 points if only 2 of 4 checks completed", () => {
     const checks: CheckResult[] = [
       createCompletedCheck("message_flags"),
       createCompletedCheck("domain_age"),
-      createCompletedCheck("careers_match"),
       {
-        ...createCompletedCheck("registration"),
+        ...createCompletedCheck("careers_match"),
         status: "unavailable",
         reasonCode: "missing_key",
       },
       {
         ...createCompletedCheck("complaints"),
         status: "inconclusive",
-        reasonCode: "no_data",
+        reasonCode: "missing_data",
       },
     ];
 
@@ -213,13 +203,13 @@ describe("lib/rules: Deterministic Scoring & Gates", () => {
     const coverage = calculateCoverage(checks);
 
     expect(totalPoints).toBe(0);
-    expect(coverage.completed).toBe(3);
+    expect(coverage.completed).toBe(2);
 
     const verdict = evaluateVerdict(checks, acceptedSignals, totalPoints);
     // Even with 0 points, Safe label is LOCKED
     expect(verdict.label).toBe("Caution");
     expect(verdict.riskIndex).toBe(0);
-    expect(verdict.labelExplanation).toContain("based on 3 of 5 checks");
+    expect(verdict.labelExplanation).toContain("based on 2 of 4 checks");
     expect(verdict.labelExplanation).toContain("Safe label is locked");
   });
 
@@ -232,7 +222,6 @@ describe("lib/rules: Deterministic Scoring & Gates", () => {
       createCompletedCheck("message_flags"),
       createCompletedCheck("domain_age"),
       createCompletedCheck("careers_match"),
-      createCompletedCheck("registration"),
       createCompletedCheck("complaints"),
     ];
 
@@ -243,24 +232,23 @@ describe("lib/rules: Deterministic Scoring & Gates", () => {
     expect(verdict.labelExplanation).toBe(LABEL_EXPLANATIONS["Caution"]);
   });
 
-  it("computes coverage summing to 5", () => {
+  it("computes coverage summing to 4", () => {
     const checks: CheckResult[] = [
       createCompletedCheck("message_flags"),
       { ...createCompletedCheck("domain_age"), status: "inconclusive" },
       { ...createCompletedCheck("careers_match"), status: "unavailable" },
-      { ...createCompletedCheck("registration"), status: "not_applicable" },
-      createCompletedCheck("complaints"),
+      { ...createCompletedCheck("complaints"), status: "not_applicable" },
     ];
 
     const coverage = calculateCoverage(checks);
-    expect(coverage.total).toBe(5);
-    expect(coverage.completed).toBe(2);
+    expect(coverage.total).toBe(4);
+    expect(coverage.completed).toBe(1);
     expect(coverage.inconclusive).toBe(1);
     expect(coverage.unavailable).toBe(1);
     expect(coverage.notApplicable).toBe(1);
     expect(
       coverage.completed + coverage.inconclusive + coverage.unavailable + coverage.notApplicable
-    ).toBe(5);
+    ).toBe(4);
   });
 
   it("generates honest deterministic rule summaries", () => {
@@ -268,7 +256,6 @@ describe("lib/rules: Deterministic Scoring & Gates", () => {
       createCompletedCheck("message_flags"),
       createCompletedCheck("domain_age"),
       createCompletedCheck("careers_match"),
-      createCompletedCheck("registration"),
       createCompletedCheck("complaints"),
     ];
     const coverage = calculateCoverage(checks);
@@ -281,7 +268,7 @@ describe("lib/rules: Deterministic Scoring & Gates", () => {
       checks
     );
 
-    expect(summaryData.summary).toContain("All 5 checks completed successfully");
+    expect(summaryData.summary).toContain("All 4 checks completed successfully");
     expect(summaryData.nextSteps.length).toBeLessThanOrEqual(3);
     expect(summaryData.nextSteps.length).toBeGreaterThan(0);
   });

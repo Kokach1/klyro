@@ -4,12 +4,6 @@ import { getCareersPagePriority, checkCareersMatch } from "../lib/checks/careers
 import { checkComplaints } from "../lib/checks/complaints";
 import { selectCandidatePages } from "../lib/checks/candidate-pages";
 import * as candidatePages from "../lib/checks/candidate-pages";
-import {
-  getRegistryPriority,
-  matchesLegalName,
-  extractCandidateLegalName,
-  checkRegistration,
-} from "../lib/checks/registration";
 import * as serpapi from "../lib/providers/serpapi";
 import { ExtractedClaims } from "../lib/contracts";
 
@@ -63,121 +57,6 @@ describe("Smarter Careers and Registry Search", () => {
     });
   });
 
-  describe("Registration Registry Ranking and Snippet Corroboration", () => {
-    it("ranks mca.gov.in highest, zaubacorp/thecompanycheck/vakilsearch second, and aggregators last", () => {
-      expect(getRegistryPriority("https://www.mca.gov.in/content/mca/global/en/home.html")).toBe(1);
-      expect(getRegistryPriority("https://www.zaubacorp.com/company/TCS/L22210MH1995PLC084781")).toBe(2);
-      expect(getRegistryPriority("https://www.thecompanycheck.com/company/tcs/L22210MH1995PLC084781")).toBe(2);
-      expect(getRegistryPriority("https://vakilsearch.com/company/tcs-cin-L22210MH1995PLC084781")).toBe(2);
-      expect(getRegistryPriority("https://www.tofler.in/company/tcs")).toBe(3);
-      expect(getRegistryPriority("https://example.com/corporate-info")).toBe(10);
-      expect(getRegistryPriority("https://www.naukri.com/company-info")).toBe(99);
-    });
-
-    it("matches legal names stripping corporate suffixes", () => {
-      expect(
-        matchesLegalName(
-          "TATA CONSULTANCY SERVICES LIMITED is a registered Public limited company",
-          "Tata Consultancy Services"
-        )
-      ).toBe(true);
-      expect(
-        matchesLegalName(
-          "INFOSYS LIMITED - CIN L85110KA1981PLC013115",
-          "Infosys Ltd"
-        )
-      ).toBe(true);
-      expect(
-        matchesLegalName(
-          "Acme Technologies Private Limited, ROC Bangalore",
-          "Acme Technologies Pvt Ltd"
-        )
-      ).toBe(true);
-      expect(
-        matchesLegalName(
-          "Unrelated Random Company Ltd",
-          "Tata Consultancy Services"
-        )
-      ).toBe(false);
-    });
-
-    it("extracts candidate legal name from title segment", () => {
-      const legal = extractCandidateLegalName(
-        "TATA CONSULTANCY SERVICES LIMITED - Company Details | Zauba Corp",
-        "Tata Consultancy Services"
-      );
-      expect(legal).toBe("TATA CONSULTANCY SERVICES LIMITED");
-    });
-
-    it("corroborates Indian registration directly from snippet CIN and exact legal name without page fetch", async () => {
-      const searchSpy = vi.spyOn(serpapi, "searchGoogleWithSerpApi").mockResolvedValueOnce([
-        {
-          title: "TATA CONSULTANCY SERVICES LIMITED - Zauba Corp",
-          link: "https://www.zaubacorp.com/company/TATA-CONSULTANCY-SERVICES-LIMITED/L22210MH1995PLC084781",
-          snippet:
-            "TATA CONSULTANCY SERVICES LIMITED is a Public limited company. Its Corporate Identification Number is (CIN) L22210MH1995PLC084781.",
-        },
-      ]);
-
-      const claims: ExtractedClaims = {
-        companyName: "Tata Consultancy Services",
-        role: "Software Developer",
-        salary: null,
-        location: "Mumbai, India",
-        contacts: [],
-        links: [],
-        employerDomain: "tcs.com",
-        claimedOperatingYears: null,
-        feeClaims: [],
-      };
-
-      const result = await checkRegistration(claims);
-      expect(searchSpy).toHaveBeenCalled();
-      expect(result.status).toBe("completed");
-      expect(result.tier).toBe("corroborated");
-      expect(result.facts.identityMatch).toBe("high");
-      expect(result.facts.cin).toBe("L22210MH1995PLC084781");
-      expect(result.facts.legalName).toBe("TATA CONSULTANCY SERVICES LIMITED");
-      expect(result.evidence.some((e) => e.classification === "corroboration")).toBe(true);
-      expect(result.finding).toBe("Entity found in Indian registry (search-based)");
-
-      searchSpy.mockRestore();
-    });
-
-    it("corroborates from MCA snippet even when MCA blocks direct fetch", async () => {
-      const searchSpy = vi.spyOn(serpapi, "searchGoogleWithSerpApi").mockResolvedValueOnce([
-        {
-          title: "Company Master Data - Ministry of Corporate Affairs",
-          link: "https://www.mca.gov.in/mcafoportal/companyMasterData.do",
-          snippet:
-            "INFOSYS LIMITED, CIN: L85110KA1981PLC013115, Company Status: Active, ROC Bangalore.",
-        },
-      ]);
-
-      const claims: ExtractedClaims = {
-        companyName: "Infosys",
-        role: "Systems Engineer",
-        salary: null,
-        location: "Bengaluru, India",
-        contacts: [],
-        links: [],
-        employerDomain: "infosys.com",
-        claimedOperatingYears: null,
-        feeClaims: [],
-      };
-
-      const result = await checkRegistration(claims);
-      expect(result.status).toBe("completed");
-      expect(result.tier).toBe("corroborated");
-      expect(result.facts.identityMatch).toBe("high");
-      expect(result.facts.cin).toBe("L85110KA1981PLC013115");
-      expect(result.evidence.some((e) => e.classification === "corroboration")).toBe(true);
-      expect(result.finding).toBe("Entity found in Indian registry (search-based)");
-
-      searchSpy.mockRestore();
-    });
-  });
-
   describe("Careers Query Construction", () => {
     it("constructs quoted, company-derived queries for every SerpAPI check", async () => {
       let queryRun = "";
@@ -218,10 +97,6 @@ describe("Smarter Careers and Registry Search", () => {
 
       await checkCareersMatch(claimsWithoutDomain);
       expect(queryRun).toBe('"Google" careers');
-
-      await checkRegistration({ ...claimsWithDomain, location: "Bengaluru, India" });
-      expect(queryRun).toBe('"Google" private limited CIN registration');
-      expect(timeoutRun).toBe(7000);
 
       await checkComplaints(claimsWithDomain);
       expect(queryRun).toBe('"Google" scam OR complaint OR review');
@@ -274,91 +149,6 @@ describe("Smarter Careers and Registry Search", () => {
   });
 
   describe("Evidence Tiers (Verified, Corroborated, Inconclusive)", () => {
-    it("registration: returns verified tier when official registry page is read directly", async () => {
-      const searchSpy = vi.spyOn(serpapi, "searchGoogleWithSerpApi").mockResolvedValueOnce([
-        {
-          title: "Tata Consultancy Services Limited - MCA Profile",
-          link: "https://www.thecompanycheck.com/company/tata-consultancy-services-limited",
-          snippet: "Official company details for Tata Consultancy Services.",
-        },
-      ]);
-      const fetchSpy = vi.spyOn(candidatePages, "fetchCandidatePages").mockResolvedValueOnce([
-        {
-          item: {
-            title: "Tata Consultancy Services Limited - MCA Profile",
-            link: "https://www.thecompanycheck.com/company/tata-consultancy-services-limited",
-            snippet: "Official company details for Tata Consultancy Services.",
-          },
-          page: {
-            url: "https://www.thecompanycheck.com/company/tata-consultancy-services-limited",
-            text: "Tata Consultancy Services Limited is registered with CIN L22210MH1995PLC084781 in Mumbai.",
-            status: 200,
-          },
-        },
-      ]);
-
-      const result = await checkRegistration({
-        companyName: "Tata Consultancy Services",
-        role: "Engineer",
-        salary: null,
-        location: "Mumbai, India",
-        contacts: [],
-        links: [],
-        employerDomain: "tcs.com",
-        claimedOperatingYears: null,
-        feeClaims: [],
-      });
-
-      expect(result.status).toBe("completed");
-      expect(result.tier).toBe("verified");
-      expect(result.facts.cin).toBe("L22210MH1995PLC084781");
-      expect(result.finding).toContain("L22210MH1995PLC084781");
-
-      searchSpy.mockRestore();
-      fetchSpy.mockRestore();
-    });
-
-    it("registration: falls back to corroborated search tier with exact wording when page fetch fails", async () => {
-      const searchSpy = vi.spyOn(serpapi, "searchGoogleWithSerpApi").mockResolvedValueOnce([
-        {
-          title: "Acme Innovations Private Limited - Company Details",
-          link: "https://www.thecompanycheck.com/company/acme-innovations",
-          snippet: "Acme Innovations Private Limited is incorporated with CIN U72200KA2020PTC123456.",
-        },
-      ]);
-      // Simulate page fetch failing (network error / blocked server)
-      const fetchSpy = vi.spyOn(candidatePages, "fetchCandidatePages").mockResolvedValueOnce([
-        {
-          item: {
-            title: "Acme Innovations Private Limited - Company Details",
-            link: "https://www.thecompanycheck.com/company/acme-innovations",
-            snippet: "Acme Innovations Private Limited is incorporated with CIN U72200KA2020PTC123456.",
-          },
-          page: null,
-        },
-      ]);
-
-      const result = await checkRegistration({
-        companyName: "Acme Innovations",
-        role: "Engineer",
-        salary: null,
-        location: "Bengaluru, India",
-        contacts: [],
-        links: [],
-        employerDomain: "acme.com",
-        claimedOperatingYears: null,
-        feeClaims: [],
-      });
-
-      expect(result.status).toBe("completed");
-      expect(result.tier).toBe("corroborated");
-      expect(result.finding).toBe("Entity found in Indian registry (search-based)");
-      expect(result.facts.cin).toBe("U72200KA2020PTC123456");
-
-      searchSpy.mockRestore();
-      fetchSpy.mockRestore();
-    });
-
     it("careers: returns verified tier when employer careers page is directly read", async () => {
       const searchSpy = vi.spyOn(serpapi, "searchGoogleWithSerpApi").mockResolvedValueOnce([
         {
@@ -376,8 +166,10 @@ describe("Smarter Careers and Registry Search", () => {
           },
           page: {
             url: "https://acmecorp.com/careers/software-engineer",
+            finalUrl: "https://acmecorp.com/careers/software-engineer",
             text: "Acme Corp is hiring a full-time Software Engineer. Competitive salary.",
-            status: 200,
+            statusCode: 200,
+            contentLength: 72,
           },
         },
       ]);

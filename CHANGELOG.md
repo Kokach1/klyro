@@ -4,6 +4,23 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+### 2026-10-11T06:33:00+05:30 — Remove Indian company registration checker and update to 4-check system
+
+- Changed:
+  - `lib/checks/registration.ts`: Removed the Indian corporate registration checker and MCA/CIN search module.
+  - `lib/contracts.ts`: Updated `CheckIdSchema` and `CHECK_IDS_ORDERED` from 5 checks to 4 checks (`message_flags`, `domain_age`, `careers_match`, `complaints`); updated `CoverageSchema` and `VerdictResponseSchema` checks length and total literal from 5 to 4.
+  - `lib/rules.ts`: Updated `calculateCoverage` total to 4; updated safe gate summary description to 4 checks; retained honest partial coverage scoring and locked Safe label semantics.
+  - `app/api/verify/route.ts`: Removed `checkRegistration` execution from both the real-time NDJSON streaming pipeline and the fallback JSON pipeline.
+  - `app/page.tsx`: Removed `registration` from UI check states; updated progress message to 4 checks; adjusted progression counter and progress bar to reflect 4 checks; removed the corporate registration card from the in-progress monitor.
+  - `components/CheckCard.tsx`: Removed registration entry from `CHECK_TITLES`.
+  - `components/MethodologySection.tsx`: Updated documentation from five checks to four checks, removing the MCA records/CIN registration check description.
+  - `tests/rules.test.ts`, `tests/failure-and-edge-cases.test.ts`, `tests/smarter-search.test.ts`: Updated test suites to reflect 4 checks, removed registration unit tests, verified partial scoring and safe gate with 4 checks.
+  - `README.md` & `SUBMISSION.md`: Updated verification pipeline documentation and demo steps to 4 checks.
+- Why: User requested removing the Indian company registration checker and its output, transitioning the tool to a streamlined 4-check evidence verification system.
+- Validation: All 55 Vitest automated tests passing across 8 test suites (`npm test`); Next.js production build (`npm run build`) succeeded with 0 errors.
+- Limitations: Verification now focuses on message flags, domain age & WHOIS, official careers matching, and public complaint patterns; Indian registry lookups are no longer performed.
+
+
 ### 2026-10-11T05:55:00+05:30 — Fix Job Link extraction, DNS lookup pin, and array limit clamping
 
 - Changed:

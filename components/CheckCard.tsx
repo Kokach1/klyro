@@ -22,7 +22,6 @@ const CHECK_TITLES: Record<CheckId, string> = {
   message_flags: "Message red flags",
   domain_age: "Company domain and age",
   careers_match: "Official careers-page match",
-  registration: "Indian company registration",
   complaints: "Complaints and reviews",
 };
 

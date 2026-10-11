@@ -75,7 +75,7 @@ export function deduplicateAndScoreSignals(rawSignals: Signal[]): {
 }
 
 /**
- * Calculate coverage statistics across the five checks.
+ * Calculate coverage statistics across the four checks.
  */
 export function calculateCoverage(checks: CheckResult[]): Coverage {
   let completed = 0;
@@ -101,7 +101,7 @@ export function calculateCoverage(checks: CheckResult[]): Coverage {
   }
 
   return {
-    total: 5,
+    total: 4,
     completed,
     inconclusive,
     unavailable,
@@ -233,7 +233,7 @@ export function generateRuleSummary(
     nextSteps.push("Verify the job directly on the employer's official website careers portal.");
     nextSteps.push("Cease contact with this recruiter if they insist on upfront payment.");
   } else if (ruleId === "safe_gate") {
-    summary = `All 5 checks completed successfully with zero observed risk signals. The employer domain and job vacancy were corroborated against official sources.`;
+    summary = `All 4 checks completed successfully with zero observed risk signals. The employer domain and job vacancy were corroborated against official sources.`;
     nextSteps.push("Review standard job details and contract terms before signing.");
     nextSteps.push("Ensure communications stay within the verified employer domain.");
     nextSteps.push("Remember: verification of published records is not an absolute guarantee.");

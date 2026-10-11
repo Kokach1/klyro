@@ -17,12 +17,12 @@ export function MethodologySection() {
 
       <p style={{ fontSize: "14px", color: "#333333", lineHeight: "1.6", marginBottom: "16px", borderLeft: "3px solid #000000", paddingLeft: "10px" }}>
         Job Scam Detector provides a deterministic, evidence-backed evaluation pipeline to detect common
-        recruitment fraud patterns. It executes five bounded verification checks concurrently, scoring
+        recruitment fraud patterns. It executes four bounded verification checks concurrently, scoring
         explicit signals rather than using probabilistic AI sentiment.
       </p>
 
       <h3 style={{ fontSize: "15px", fontWeight: 800, marginTop: "18px", marginBottom: "10px" }}>
-        The Five Verification Checks
+        The Four Verification Checks
       </h3>
       <ul style={{ paddingLeft: "20px", fontSize: "14px", lineHeight: "1.6", display: "flex", flexDirection: "column", gap: "8px", marginBottom: "18px" }}>
         <li>
@@ -39,11 +39,7 @@ export function MethodologySection() {
           to verify that the advertised vacancy actually exists on legitimate company channels.
         </li>
         <li>
-          <strong>4. Indian corporate registration:</strong> Searches MCA records and corporate registries to discover Corporate Identification Numbers (CIN)
-          and confirm active legal entity existence in India.
-        </li>
-        <li>
-          <strong>5. Complaints &amp; reviews:</strong> Bounded search across public web sources for recurring scam complaints. Requires 2+ independent,
+          <strong>4. Complaints &amp; reviews:</strong> Bounded search across public web sources for recurring scam complaints. Requires 2+ independent,
           deduplicated sources to establish a pattern of reported allegations.
         </li>
       </ul>

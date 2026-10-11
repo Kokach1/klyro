@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { checkDomainAge } from "../lib/checks/domain-age";
 import { checkCareersMatch } from "../lib/checks/careers-match";
-import { checkRegistration } from "../lib/checks/registration";
 import { checkComplaints } from "../lib/checks/complaints";
 import { checkMessageFlags } from "../lib/checks/message-flags";
 import { evaluateVerdict, generateRuleSummary, calculateCoverage } from "../lib/rules";
@@ -162,29 +161,6 @@ describe("Failure, Provider & Security Test Cases", () => {
         },
       },
       {
-        id: "registration",
-        status: "unavailable",
-        reasonCode: "timeout",
-        reason: "SerpAPI request timed out.",
-        finding: "Check unavailable.",
-        whyItMatters: "",
-        checkedAt: new Date().toISOString(),
-        evidence: [],
-        signals: [],
-        facts: {
-          domain: null,
-          domainOfficialConfirmed: false,
-          domainResponse: null,
-          domainCreatedAt: null,
-          domainAgeDays: null,
-          domainYoung: null,
-          roleMatched: null,
-          legalName: null,
-          cin: null,
-          identityMatch: "ambiguous",
-        },
-      },
-      {
         id: "complaints",
         status: "unavailable",
         reasonCode: "timeout",
@@ -281,29 +257,6 @@ describe("Failure, Provider & Security Test Cases", () => {
       },
       {
         id: "careers_match",
-        status: "unavailable",
-        reasonCode: "interrupted",
-        reason: "Stream interrupted",
-        finding: "Check unavailable: stream connection was interrupted.",
-        whyItMatters: "",
-        checkedAt: new Date().toISOString(),
-        evidence: [],
-        signals: [],
-        facts: {
-          domain: null,
-          domainOfficialConfirmed: false,
-          domainResponse: null,
-          domainCreatedAt: null,
-          domainAgeDays: null,
-          domainYoung: null,
-          roleMatched: null,
-          legalName: null,
-          cin: null,
-          identityMatch: "ambiguous",
-        },
-      },
-      {
-        id: "registration",
         status: "unavailable",
         reasonCode: "interrupted",
         reason: "Stream interrupted",

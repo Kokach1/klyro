@@ -43,7 +43,6 @@ export default function Home() {
     message_flags: "pending",
     domain_age: "pending",
     careers_match: "pending",
-    registration: "pending",
     complaints: "pending",
   });
   const [streamInterrupted, setStreamInterrupted] = useState(false);
@@ -108,7 +107,6 @@ export default function Home() {
       message_flags: "pending",
       domain_age: "pending",
       careers_match: "pending",
-      registration: "pending",
       complaints: "pending",
     };
     setCheckUiStates(initialStates);
@@ -331,7 +329,7 @@ export default function Home() {
                   Running Verification Checks...
                 </h2>
                 <p style={{ fontSize: "14px", color: "#333333", marginTop: "4px" }}>
-                  Executing 5 independent evidence checks concurrently across message signals, domain age, official careers portals, corporate registrations, and scam complaints.
+                  Executing 4 independent evidence checks concurrently across message signals, domain age, official careers portals, and scam complaints.
                 </p>
               </div>
               <span
@@ -345,7 +343,7 @@ export default function Home() {
                   boxShadow: "3px 3px 0 #000000",
                 }}
               >
-                {Object.values(checkUiStates).filter((s) => s === "done").length} of 5 Completed
+                {Object.values(checkUiStates).filter((s) => s === "done").length} of 4 Completed
               </span>
             </div>
 
@@ -366,7 +364,7 @@ export default function Home() {
                 style={{
                   height: "100%",
                   backgroundColor: "var(--color-action)",
-                  width: `${Math.max(15, (Object.values(checkUiStates).filter((s) => s === "done").length / 5) * 100)}%`,
+                  width: `${Math.max(15, (Object.values(checkUiStates).filter((s) => s === "done").length / 4) * 100)}%`,
                   transition: "width 0.4s ease",
                 }}
               />
@@ -391,13 +389,8 @@ export default function Home() {
                   desc: "Verifying vacancy exists on official employer careers portal",
                 },
                 {
-                  id: "registration" as CheckId,
-                  title: "4. Corporate Registration",
-                  desc: "Checking Ministry of Corporate Affairs (MCA) records & CIN",
-                },
-                {
                   id: "complaints" as CheckId,
-                  title: "5. Scam Complaints",
+                  title: "4. Scam Complaints",
                   desc: "Scanning public sources for deduplicated complaint and allegation patterns",
                 },
               ].map((checkDef) => {
