@@ -13,6 +13,7 @@ import {
 import { InputForm } from "@/components/InputForm";
 import { ClaimReview } from "@/components/ClaimReview";
 import { ResultsSection } from "@/components/ResultsSection";
+import { RiskDial } from "@/components/RiskDial";
 import {
   calculateCoverage,
   deduplicateAndScoreSignals,
@@ -47,6 +48,19 @@ export default function Home() {
   });
   const [streamInterrupted, setStreamInterrupted] = useState(false);
   const [verdictResult, setVerdictResult] = useState<VerdictResponse | null>(null);
+  const [streamedChecks, setStreamedChecks] = useState<Partial<Record<CheckId, CheckResult>>>({});
+
+  // Keep the in-progress score and coverage tied to the same streamed results.
+  // Only completed checks can contribute risk signals, matching the final server result.
+  const liveChecks = Object.values(streamedChecks).filter(
+    (check): check is CheckResult => Boolean(check)
+  );
+  const liveCoverage = calculateCoverage(liveChecks);
+  const { acceptedSignals: liveSignals, totalPoints: liveRiskIndex } = deduplicateAndScoreSignals(
+    liveChecks.filter((check) => check.status === "completed").flatMap((check) => check.signals)
+  );
+  const liveVerdict = evaluateVerdict(liveChecks, liveSignals, liveRiskIndex);
+  const returnedCheckCount = liveChecks.length;
 
   // Handle URL hash routing on initial load
   useEffect(() => {
@@ -99,6 +113,7 @@ export default function Home() {
 
     setIsRunningChecks(true);
     setStreamInterrupted(false);
+    setVerdictResult(null);
     setStage("results");
     setScanHash("results");
 
@@ -110,6 +125,7 @@ export default function Home() {
       complaints: "pending",
     };
     setCheckUiStates(initialStates);
+    setStreamedChecks({});
 
     const receivedChecks: CheckResult[] = [];
 
@@ -156,6 +172,7 @@ export default function Home() {
             } else if (event.type === "check_result") {
               const check: CheckResult = event.check;
               receivedChecks.push(check);
+              setStreamedChecks((prev) => ({ ...prev, [check.id]: check }));
               setCheckUiStates((prev) => ({ ...prev, [check.id]: "done" }));
             } else if (event.type === "final") {
               setVerdictResult(event.result);
@@ -343,7 +360,7 @@ export default function Home() {
                   boxShadow: "3px 3px 0 #000000",
                 }}
               >
-                {Object.values(checkUiStates).filter((s) => s === "done").length} of 4 Completed
+                {liveCoverage.completed} of {liveCoverage.total} checks completed
               </span>
             </div>
 
@@ -364,10 +381,37 @@ export default function Home() {
                 style={{
                   height: "100%",
                   backgroundColor: "var(--color-action)",
-                  width: `${Math.max(15, (Object.values(checkUiStates).filter((s) => s === "done").length / 4) * 100)}%`,
+                  width: `${Math.max(15, (returnedCheckCount / CHECK_IDS_ORDERED.length) * 100)}%`,
                   transition: "width 0.4s ease",
                 }}
               />
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                marginBottom: "24px",
+              }}
+            >
+              <div style={{ maxWidth: "300px", width: "100%" }}>
+                <RiskDial
+                  score={liveVerdict.riskIndex}
+                  label={liveVerdict.label}
+                  coverage={liveCoverage}
+                />
+                <p
+                  style={{
+                    marginTop: "10px",
+                    fontSize: "12px",
+                    color: "#555555",
+                    lineHeight: "1.4",
+                    textAlign: "center",
+                  }}
+                >
+                  Live risk index and completed-check count update as each check returns. The final verdict is shown when all checks finish.
+                </p>
+              </div>
             </div>
 
             {/* Checklist */}

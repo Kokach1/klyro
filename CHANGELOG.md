@@ -4,6 +4,16 @@ Record each meaningful project change during the event, newest first. Update thi
 
 ## Event build log
 
+### 2026-10-11T08:23:00+05:30 — Make live risk and coverage progress dynamic
+
+- Changed:
+  - `app/page.tsx`: Stores each streamed check result in React state and recalculates the in-progress risk index, label, and coverage strictly from returned completed checks. The verification screen now displays a live risk dial and dynamic completed-check count; the progress bar follows returned check results. Retries clear the previous verdict before showing fresh live progress.
+  - `components/ResultsSection.tsx`: Replaced the stale hard-coded coverage denominator with `coverage.total`.
+  - `README.md`: Documented that the provisional risk index and coverage update during verification.
+- Why: The completed-check display previously looked static and the in-progress view did not expose the same live rule inputs used for the final score.
+- Validation: `npm run typecheck` passed; `npm test` passed (55 tests across 8 files); `npm run build` completed successfully.
+- Limitations: The in-progress reading is provisional; it becomes the final displayed result only after the verification stream finishes.
+
 ### 2026-10-11T06:33:00+05:30 — Remove Indian company registration checker and update to 4-check system
 
 - Changed:

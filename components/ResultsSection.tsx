@@ -205,7 +205,7 @@ export function ResultsSection({
           }}
         >
           <div style={{ fontWeight: 700 }}>
-            Coverage: <span style={{ fontWeight: 400 }}>{coverage.completed} of 5 checks completed</span>
+            Coverage: <span style={{ fontWeight: 400 }}>{coverage.completed} of {coverage.total} checks completed</span>
           </div>
 
           <div

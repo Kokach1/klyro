@@ -15,6 +15,7 @@ Job Scam Detector analyzes job postings, recruiter messages, and vacancy links t
 Unlike generic sentiment-based AI tools, this system uses an evidence-grounded verification pipeline:
 - AI models only perform bounded extraction and evidence summarization.
 - All risk scores, coverage calculations, and final verdict labels are determined entirely by deterministic TypeScript business rules.
+- During verification, the risk index and completed-check coverage update from each streamed check result; the final verdict replaces this provisional view when all four checks finish.
 - The system operates strictly in-memory. Postings, candidate contacts, and links are never stored in databases, local storage, URL query parameters, or server logs.
 
 ---
